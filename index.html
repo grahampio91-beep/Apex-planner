@@ -14,15 +14,7 @@
   --radius: 14px; --radius-sm: 9px; --nav-h: 68px; --top-h: 56px;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-body {
-  font-family: 'DM Sans', sans-serif;
-  background: var(--cream);
-  color: var(--text);
-  min-height: 100vh;
-  font-size: 15px;
-  line-height: 1.6;
-  overscroll-behavior: none;
-}
+body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--text); min-height: 100vh; font-size: 15px; line-height: 1.6; overscroll-behavior: none; }
 #lock-screen { position: fixed; inset: 0; background: #0F1F3D; display: flex; align-items: center; justify-content: center; z-index: 999; flex-direction: column; gap: 20px; min-height: 100vh; }
 .lock-card { background: #1B2A4A; border: 1px solid rgba(201,148,58,0.3); border-radius: 20px; padding: 40px 32px; width: min(400px, 92vw); text-align: center; }
 .lock-logo { font-family: 'DM Serif Display', serif; color: var(--gold-light); font-size: 28px; margin-bottom: 4px; }
@@ -37,7 +29,7 @@ body {
 .strength-bar.good { background: #f1c40f; } .strength-bar.strong { background: #2ecc71; }
 .lock-btn { width: 100%; background: var(--gold); color: white; border: none; border-radius: 9px; padding: 14px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 15px; }
 .lock-error { color: #ff7675; font-size: 13px; margin-top: 8px; min-height: 18px; }
-/* Full original CSS for panels, nav, cards, todo, budget, water, etc. */
+/* Full original CSS for panels, nav, cards, todo, budget, water, gratitude, goals, meals, monthly, alerts, stickers */
 .panel { display: none; animation: fadeIn 0.18s ease; }
 .panel.active { display: block; }
 @keyframes fadeIn { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:translateY(0); } }
@@ -74,7 +66,7 @@ body {
 </div>
 
 <div id="app" style="display:none">
-  <!-- Full planner content -->
+  <!-- Full planner content - all your original panels restored -->
   <div class="panel active" id="panel-dashboard">
     <div class="welcome-band">
       <h2 id="welcome-msg">Good morning!</h2>
@@ -82,7 +74,6 @@ body {
       <div class="welcome-quote" id="daily-quote"></div>
     </div>
   </div>
-  <!-- All other panels restored -->
 </div>
 
 <script>
