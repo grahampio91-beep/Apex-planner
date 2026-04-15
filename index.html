@@ -302,11 +302,14 @@ background: var(–navy); border-radius: var(–radius); padding: 22px 20px; mar
 /* ── MONTHLY ── */
 .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
 .cal-hdr { text-align: center; font-size: 10px; font-weight: 600; color: var(–text3); text-transform: uppercase; padding: 6px 0; }
-.cal-day { aspect-ratio: 1; border: 1px solid var(–border); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; background: white; cursor: pointer; transition: all 0.15s; position: relative; }
+.cal-day { aspect-ratio: 1; border: 1px solid var(–border); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; background: white; cursor: pointer; transition: all 0.15s; position: relative; flex-direction: column; align-items: center; justify-content: flex-start; padding: 4px 2px; min-height: 44px; }
 .cal-day:hover { border-color: var(–gold); }
 .cal-day.today { background: var(–navy); color: white; border-color: var(–navy); }
 .cal-day.other-month { opacity: 0.25; }
 .cal-day.weekend:not(.today) { background: var(–surface2); }
+.cal-day-num { font-size: 12px; font-weight: 500; line-height: 1.2; }
+.cal-stickers { display: flex; flex-wrap: wrap; gap: 1px; justify-content: center; margin-top: 2px; line-height: 1; }
+.cal-sticker { font-size: 13px; line-height: 1; }
 
 /* ── TOAST ── */
 .toast { position: fixed; bottom: calc(var(–nav-h) + 12px); left: 50%; transform: translateX(-50%) translateY(10px); background: var(–success); color: white; padding: 9px 20px; border-radius: 100px; font-size: 13px; font-weight: 500; opacity: 0; transition: all 0.3s; z-index: 200; pointer-events: none; white-space: nowrap; }
@@ -344,10 +347,6 @@ display: flex; justify-content: space-between; align-items: center;
 .sticker-btn:hover { background: var(–surface2); }
 .sticker-btn.selected-sticker { background: rgba(201,148,58,0.15); outline: 2px solid var(–gold); }
 .sticker-actions { display: flex; gap: 8px; margin-top: 12px; }
-.cal-day { cursor: pointer; flex-direction: column; align-items: center; justify-content: flex-start; padding: 4px 2px; min-height: 44px; }
-.cal-day-num { font-size: 12px; font-weight: 500; line-height: 1.2; }
-.cal-stickers { display: flex; flex-wrap: wrap; gap: 1px; justify-content: center; margin-top: 2px; line-height: 1; }
-.cal-sticker { font-size: 13px; line-height: 1; }
 
 /* ── AFFIRMATION SELECT ── */
 #affirmation-select {
@@ -400,12 +399,10 @@ box-shadow: 0 4px 20px rgba(0,0,0,0.2);
 
 .time-picker { display: flex; align-items: center; gap: 8px; }
 .time-picker input[type=time] { width: 110px; padding: 6px 10px; font-size: 14px; }
-
 </style>
+
 </head>
 <body>
-
-<!-- LOCK -->
 
 <!-- NOTIFICATION BANNER -->
 
@@ -417,6 +414,8 @@ box-shadow: 0 4px 20px rgba(0,0,0,0.2);
   </div>
   <button class="notif-close" onclick="closeNotif()">✕</button>
 </div>
+
+<!-- LOCK -->
 
 <div id="lock-screen">
   <div class="lock-card">
@@ -530,8 +529,7 @@ box-shadow: 0 4px 20px rgba(0,0,0,0.2);
       <label>Today's affirmation</label>
       <div style="display:flex;gap:8px;align-items:flex-start">
         <div style="flex:1;display:flex;flex-direction:column;gap:6px">
-          <select id="affirmation-select" onchange="pickAffirmation(this.value)"
-            style="max-height:110px;overflow-y:auto" size="5">
+          <select id="affirmation-select" onchange="pickAffirmation(this.value)" style="max-height:110px;overflow-y:auto" size="5">
             <option value="" disabled>— Pick an affirmation —</option>
             <optgroup label="✨ Confidence">
               <option>I am capable of achieving anything I set my mind to.</option>
@@ -700,13 +698,7 @@ box-shadow: 0 4px 20px rgba(0,0,0,0.2);
     </div>
   </div>
 </div>
-```
 
-  </div>
-
-  <!-- STICKER OVERLAY -->
-
-```
 <!-- ALERTS SECTION -->
 <div class="panel" id="panel-alerts">
   <div class="section-row"><h2>Alerts &amp; Reminders</h2></div>
@@ -758,6 +750,10 @@ box-shadow: 0 4px 20px rgba(0,0,0,0.2);
   </div>
 </div>
 ```
+
+  </div>
+
+  <!-- STICKER OVERLAY -->
 
   <div class="sticker-overlay" id="sticker-overlay" onclick="closeSticker()"></div>
   <div class="sticker-panel" id="sticker-panel">
@@ -848,11 +844,20 @@ const QUOTES = [
   "The secret of getting ahead is getting started.",
   "Small steps every day lead to big results.",
   "Progress, not perfection.",
-  "One day or day one — you decide.",
+  "One day or day one \u2014 you decide.",
   "Success is the sum of small efforts, repeated.",
   "Discipline is choosing between what you want now and what you want most.",
   "Your future is created by what you do today.",
 ];
+
+/* ── EMOJI LOOKUP ── */
+const EMOJI_MAP = {
+  'ok': '✅', 'clock': '⏰', 'target': '🎯', 'date': '📅',
+  'water': '💧', 'morning': '🌅'
+};
+function emojiLookup(key) {
+  return EMOJI_MAP[key] || key;
+}
 
 /* ── LOCK ── */
 function hash(s) {
@@ -935,7 +940,7 @@ function setDates(){
   const dateStr=days[n.getDay()]+', '+months[n.getMonth()]+' '+n.getDate();
   document.getElementById('welcome-date').textContent=dateStr;
   document.getElementById('topbar-date').textContent=dateStr;
-  document.getElementById('daily-quote').textContent='"'+QUOTES[n.getDate()%QUOTES.length]+'"';
+  document.getElementById('daily-quote').textContent='\u201C'+QUOTES[n.getDate()%QUOTES.length]+'\u201D';
 }
 
 /* ── NAVIGATE ── */
@@ -951,7 +956,6 @@ function navigate(page){
   document.querySelectorAll('.nav-item[data-page]').forEach(n=>{
     n.classList.toggle('active', n.dataset.page===page || (page==='more'&&n.dataset.page==='more'));
   });
-  // highlight more-items
   document.querySelectorAll('.more-item[data-page]').forEach(m=>m.classList.toggle('active',m.dataset.page===page));
   window.scrollTo(0,0);
   if(page==='dashboard')renderDashboard();
@@ -1222,7 +1226,8 @@ const sd=document.getElementById(‘dash-schedule’);
 if(sd&&S.schedule){
 const items=Object.entries(S.schedule).filter(([,v])=>v).slice(0,4);
 sd.innerHTML=items.length?items.map(([h,v])=>{
-const l=h==12?‘12 PM’:h<12?h+’ AM’:(h-12)+’ PM’;
+const hr=parseInt(h);
+const l=hr===12?‘12 PM’:hr<12?hr+’ AM’:(hr-12)+’ PM’;
 return`<div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)"><span style="font-size:12px;font-weight:600;color:var(--text3);min-width:48px">${l}</span><span style="font-size:14px">${esc(v)}</span></div>`;
 }).join(’’):’<div class="empty" style="padding:16px 0">No events today.</div>’;
 }
@@ -1237,9 +1242,9 @@ function esc(s){if(!s)return’’;return String(s).replace(/&/g,’&’).replac
 const STICKER_SETS = {
 ‘Mood’: [‘😊’,‘😍’,‘🥰’,‘😎’,‘😴’,‘😤’,‘🥳’,‘😢’,‘😂’,‘🤩’,‘😌’,‘🔥’,‘✨’,‘💫’,‘⭐’,‘🌟’],
 ‘Nature’: [‘🌸’,‘🌺’,‘🌻’,‘🌹’,‘🍀’,‘🌿’,‘🍃’,‘🌈’,‘☀️’,‘🌙’,‘⛅’,‘🌊’,‘🦋’,‘🐝’,‘🌵’,‘🍁’],
-‘Events’: [‘🎉’,‘🎂’,‘🎁’,‘🎈’,‘🏖️’,‘✈️’,‘🎓’,‘💍’,‘🏆’,‘target’,‘date’,‘📌’,‘🔔’,‘💌’,‘🎵’,‘🎨’],
-‘Health’: [‘💪’,‘🏃’,‘🧘’,‘🥗’,‘💊’,‘🏋️’,‘🚴’,‘🧠’,‘❤️’,‘💤’,‘🥤’,‘morning’,‘🍎’,‘🥦’,‘🧘’,‘🏊’],
-‘Work’: [‘💼’,‘📝’,‘💡’,‘🖥️’,‘📊’,‘ok’,‘clock’,‘☕’,‘📚’,‘target’,‘🔑’,‘💰’,‘📱’,‘🤝’,‘📈’,‘🗓️’],
+‘Events’: [‘🎉’,‘🎂’,‘🎁’,‘🎈’,‘🏖️’,‘✈️’,‘🎓’,‘💍’,‘🏆’,‘🎯’,‘📅’,‘📌’,‘🔔’,‘💌’,‘🎵’,‘🎨’],
+‘Health’: [‘💪’,‘🏃’,‘🧘’,‘🥗’,‘💊’,‘🏋️’,‘🚴’,‘🧠’,‘❤️’,‘💤’,‘🥤’,‘🌅’,‘🍎’,‘🥦’,‘🧘‍♀️’,‘🏊’],
+‘Work’: [‘💼’,‘📝’,‘💡’,‘🖥️’,‘📊’,‘✅’,‘⏰’,‘☕’,‘📚’,‘🎯’,‘🔑’,‘💰’,‘📱’,‘🤝’,‘📈’,‘🗓️’],
 ‘Fun’: [‘🎮’,‘🎬’,‘🎤’,‘🍕’,‘🍦’,‘🌮’,‘🎸’,‘⚽’,‘🏀’,‘🎲’,‘🎠’,‘🎡’,‘🎢’,‘🃏’,‘🎳’,‘🛹’],
 };
 
@@ -1309,6 +1314,8 @@ saveAll();
 function pickAffirmation(val) {
 if (val && val !== ‘’) {
 document.getElementById(‘affirmation’).value = val;
+S.daily.affirmation = val;
+collect();
 saveAll();
 }
 }
@@ -1316,14 +1323,15 @@ saveAll();
 /* ── NOTIFICATIONS & ALERTS ── */
 let notifTimer = null;
 
-function showNotif(icon, title, msg, duration=5000) {
-document.getElementById(‘notif-icon’).textContent = icon;
+function showNotif(icon, title, msg, duration) {
+duration = duration || 5000;
+document.getElementById(‘notif-icon’).textContent = emojiLookup(icon);
 document.getElementById(‘notif-title’).textContent = title;
 document.getElementById(‘notif-msg’).textContent = msg;
 const banner = document.getElementById(‘notif-banner’);
 banner.classList.add(‘show’);
 clearTimeout(notifTimer);
-notifTimer = setTimeout(() => banner.classList.remove(‘show’), duration);
+notifTimer = setTimeout(function() { banner.classList.remove(‘show’); }, duration);
 }
 
 function closeNotif() {
@@ -1333,10 +1341,10 @@ clearTimeout(notifTimer);
 
 function requestNotifPermission() {
 if (‘Notification’ in window) {
-Notification.requestPermission().then(perm => {
+Notification.requestPermission().then(function(perm) {
 if (perm === ‘granted’) {
 document.getElementById(‘notif-permission-banner’).style.display = ‘none’;
-showNotif(‘ok’, ‘Notifications enabled’, ‘You will now receive reminders even when the app is closed.’);
+showNotif(‘✅’, ‘Notifications enabled’, ‘You will now receive reminders even when the app is closed.’);
 saveAlerts();
 }
 });
@@ -1345,12 +1353,12 @@ saveAlerts();
 
 function sendBrowserNotif(title, body) {
 if (‘Notification’ in window && Notification.permission === ‘granted’) {
-new Notification(title, { body, icon: ‘/favicon.ico’ });
+new Notification(title, { body: body });
 }
 }
 
 function saveAlerts() {
-const alerts = {
+var alerts = {
 daily: document.getElementById(‘alert-daily’).checked,
 dailyTime: document.getElementById(‘alert-daily-time’).value,
 schedule: document.getElementById(‘alert-schedule’).checked,
@@ -1369,9 +1377,9 @@ renderUpcomingAlerts();
 
 function loadAlerts() {
 try {
-const saved = localStorage.getItem(‘apex_alerts_v1’);
+var saved = localStorage.getItem(‘apex_alerts_v1’);
 if (!saved) return;
-const a = JSON.parse(saved);
+var a = JSON.parse(saved);
 document.getElementById(‘alert-daily’).checked = a.daily || false;
 document.getElementById(‘alert-daily-time’).value = a.dailyTime || ‘08:00’;
 document.getElementById(‘alert-schedule’).checked = a.schedule || false;
@@ -1384,86 +1392,80 @@ document.getElementById(‘daily-time-row’).style.display = a.daily ? ‘flex�
 document.getElementById(‘water-time-row’).style.display = a.water ? ‘flex’ : ‘none’;
 } catch(e) {}
 
-// Show permission banner if not granted
 if (‘Notification’ in window && Notification.permission !== ‘granted’) {
 document.getElementById(‘notif-permission-banner’).style.display = ‘block’;
 }
 }
 
-let alertIntervals = [];
+var alertIntervals = [];
 
 function scheduleAllAlerts() {
-alertIntervals.forEach(id => clearInterval(id));
+alertIntervals.forEach(function(id) { clearInterval(id); });
 alertIntervals = [];
 
-const a = getAlertSettings();
+var a = getAlertSettings();
 
-// Daily check-in — check every minute
 if (a.daily) {
-const id = setInterval(() => {
-const now = new Date();
-const [h, m] = a.dailyTime.split(’:’).map(Number);
-if (now.getHours() === h && now.getMinutes() === m) {
-showNotif(‘morning’, ‘Good morning!’, ‘Time to plan your day. Open your planner!’);
+var id1 = setInterval(function() {
+var now = new Date();
+var parts = (a.dailyTime || ‘08:00’).split(’:’).map(Number);
+if (now.getHours() === parts[0] && now.getMinutes() === parts[1]) {
+showNotif(‘🌅’, ‘Good morning!’, ‘Time to plan your day. Open your planner!’);
 sendBrowserNotif(‘Good morning!’, ‘Time to plan your day in Apex Planner!’);
 }
 }, 60000);
-alertIntervals.push(id);
+alertIntervals.push(id1);
 }
 
-// Water reminder — every 2 hours between start/end
 if (a.water) {
-const id = setInterval(() => {
-const now = new Date();
-const [sh, sm] = a.waterStart.split(’:’).map(Number);
-const [eh, em] = a.waterEnd.split(’:’).map(Number);
-const nowMins = now.getHours() * 60 + now.getMinutes();
-const startMins = sh * 60 + sm;
-const endMins = eh * 60 + em;
+var id2 = setInterval(function() {
+var now = new Date();
+var sp = (a.waterStart || ‘08:00’).split(’:’).map(Number);
+var ep = (a.waterEnd || ‘20:00’).split(’:’).map(Number);
+var nowMins = now.getHours() * 60 + now.getMinutes();
+var startMins = sp[0] * 60 + sp[1];
+var endMins = ep[0] * 60 + ep[1];
 if (nowMins >= startMins && nowMins <= endMins && now.getMinutes() === 0 && now.getHours() % 2 === 0) {
-const remaining = 8 - (S.water || 0);
-showNotif(‘water’, ‘Water reminder’, ‘Drink more water! You have ’ + remaining + ’ glasses left today.’);
+var remaining = 8 - (S.water || 0);
+showNotif(‘💧’, ‘Water reminder’, ‘Drink more water! You have ’ + remaining + ’ glasses left today.’);
 sendBrowserNotif(‘Water reminder’, ‘Drink more water! ’ + remaining + ’ glasses left.’);
 }
 }, 60000);
-alertIntervals.push(id);
+alertIntervals.push(id2);
 }
 
-// Schedule check — every minute
 if (a.schedule) {
-const id = setInterval(() => {
-const now = new Date();
-const in15 = now.getHours() * 60 + now.getMinutes() + 15;
-const h15 = Math.floor(in15 / 60);
-const event = S.schedule && S.schedule[h15];
+var id3 = setInterval(function() {
+var now = new Date();
+var in15 = now.getHours() * 60 + now.getMinutes() + 15;
+var h15 = Math.floor(in15 / 60);
+var event = S.schedule && S.schedule[h15];
 if (event && now.getMinutes() === 45) {
-showNotif(‘clock’, ‘Coming up in 15 min’, event);
+showNotif(‘⏰’, ‘Coming up in 15 min’, event);
 sendBrowserNotif(‘Coming up in 15 min ⏰’, event);
 }
 }, 60000);
-alertIntervals.push(id);
+alertIntervals.push(id3);
 }
 
-// Goal deadline check — once per hour
 if (a.goals) {
-const id = setInterval(() => {
-const now = new Date();
+var id4 = setInterval(function() {
+var now = new Date();
 if (now.getHours() === 9 && now.getMinutes() === 0) {
 checkGoalDeadlines();
 }
 }, 60000);
-alertIntervals.push(id);
+alertIntervals.push(id4);
 }
 
-// Calendar check — once at 8am
 if (a.calendar) {
-const id = setInterval(() => {
-const now = new Date();
+var id5 = setInterval(function() {
+var now = new Date();
 if (now.getHours() === 8 && now.getMinutes() === 0) {
 checkCalendarToday();
 }
 }, 60000);
-alertIntervals.push(id);
+alertIntervals.push(id5);
 }
 }
 
@@ -1475,76 +1477,75 @@ return JSON.parse(localStorage.getItem(‘apex_alerts_v1’)) || {};
 
 function checkGoalDeadlines() {
 if (!S.goals || !S.goals.length) return;
-const now = new Date();
-S.goals.forEach(g => {
+var now = new Date();
+S.goals.forEach(function(g) {
 if (!g.deadline || g.progress >= 100) return;
-const deadline = new Date(g.deadline);
-if (isNaN(deadline)) return;
-const daysLeft = Math.ceil((deadline - now) / (1000 * 60 * 60 * 24));
+var deadline = new Date(g.deadline);
+if (isNaN(deadline.getTime())) return;
+var daysLeft = Math.ceil((deadline - now) / (1000 * 60 * 60 * 24));
 if (daysLeft >= 0 && daysLeft <= 3) {
-const msg = daysLeft === 0 ? ‘Due today!’ : daysLeft + ’ days left’;
-showNotif(‘target’, ’Goal deadline: ’ + g.title, msg);
+var msg = daysLeft === 0 ? ‘Due today!’ : daysLeft + ’ days left’;
+showNotif(‘🎯’, ’Goal deadline: ’ + g.title, msg);
 sendBrowserNotif(’Goal deadline: ’ + g.title, msg);
 }
 });
 }
 
 function checkCalendarToday() {
-const now = new Date();
-const key = now.getFullYear() + ‘-’ + now.getMonth() + ‘-’ + now.getDate();
-const stickers = S.calStickers && S.calStickers[key];
+var now = new Date();
+var key = now.getFullYear() + ‘-’ + now.getMonth() + ‘-’ + now.getDate();
+var stickers = S.calStickers && S.calStickers[key];
 if (stickers && stickers.length) {
-showNotif(‘date’, ‘You have calendar events today’, stickers.join(’ ‘) + ’ - check your planner!’);
+showNotif(‘📅’, ‘You have calendar events today’, stickers.join(’ ‘) + ’ - check your planner!’);
 sendBrowserNotif(‘Events today’, ‘You have ’ + stickers.length + ’ items marked for today.’);
 }
 }
 
 function runStartupAlerts() {
-// Run checks when app opens
-const a = getAlertSettings();
+var a = getAlertSettings();
 if (a.goals) setTimeout(checkGoalDeadlines, 3000);
 if (a.calendar) setTimeout(checkCalendarToday, 4000);
 if (a.schedule) {
-setTimeout(() => {
-const now = new Date();
-const nextHour = now.getHours() + 1;
-const event = S.schedule && S.schedule[nextHour];
+setTimeout(function() {
+var now = new Date();
+var nextHour = now.getHours() + 1;
+var event = S.schedule && S.schedule[nextHour];
 if (event) {
-showNotif(‘clock’, ‘Upcoming today’, event + ’ — in about ’ + (60 - now.getMinutes()) + ’ min’);
+showNotif(‘⏰’, ‘Upcoming today’, event + ’ \u2014 in about ’ + (60 - now.getMinutes()) + ’ min’);
 }
 }, 5000);
 }
 if (a.water && (S.water || 0) < 3 && new Date().getHours() > 12) {
-setTimeout(() => {
-showNotif(‘water’, ‘Water check’, ‘You have only had ’ + (S.water||0) + ’ glasses today. Stay hydrated!’);
+setTimeout(function() {
+showNotif(‘💧’, ‘Water check’, ‘You have only had ’ + (S.water||0) + ’ glasses today. Stay hydrated!’);
 }, 6000);
 }
 }
 
 function renderUpcomingAlerts() {
-const el = document.getElementById(‘upcoming-alerts’);
+var el = document.getElementById(‘upcoming-alerts’);
 if (!el) return;
-const a = getAlertSettings();
-const items = [];
-if (a.daily) items.push({ icon: ‘morning’, label: ‘Daily check-in’, time: a.dailyTime });
-if (a.schedule) items.push({ icon: ‘clock’, label: ‘Schedule reminders’, time: ‘15 min before events’ });
-if (a.goals) items.push({ icon: ‘target’, label: ‘Goal deadline alerts’, time: ‘When within 3 days’ });
-if (a.calendar) items.push({ icon: ‘date’, label: ‘Calendar day alerts’, time: ‘8:00 AM on event days’ });
-if (a.water) items.push({ icon: ‘water’, label: ‘Water reminders’, time: ’Every 2 hrs, ’ + (a.waterStart||‘08:00’) + ’ – ’ + (a.waterEnd||‘20:00’) });
+var a = getAlertSettings();
+var items = [];
+if (a.daily) items.push({ icon: ‘🌅’, label: ‘Daily check-in’, time: a.dailyTime });
+if (a.schedule) items.push({ icon: ‘⏰’, label: ‘Schedule reminders’, time: ‘15 min before events’ });
+if (a.goals) items.push({ icon: ‘🎯’, label: ‘Goal deadline alerts’, time: ‘When within 3 days’ });
+if (a.calendar) items.push({ icon: ‘📅’, label: ‘Calendar day alerts’, time: ‘8:00 AM on event days’ });
+if (a.water) items.push({ icon: ‘💧’, label: ‘Water reminders’, time: ’Every 2 hrs, ’ + (a.waterStart||‘08:00’) + ’ \u2013 ’ + (a.waterEnd||‘20:00’) });
 
 if (!items.length) {
 el.innerHTML = ‘<div class="empty">No alerts enabled yet. Toggle some on above!</div>’;
 return;
 }
-el.innerHTML = items.map(item =>
-‘<div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border)">’ +
+el.innerHTML = items.map(function(item) {
+return ‘<div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border)">’ +
 ‘<span style="font-size:20px">’ + item.icon + ‘</span>’ +
 ‘<div><div style="font-size:14px;font-weight:500">’ + item.label + ‘</div>’ +
-‘<div style="font-size:12px;color:var(--text3)">’ + item.time + ‘</div></div></div>’
-).join(’’);
+‘<div style="font-size:12px;color:var(--text3)">’ + item.time + ‘</div></div></div>’;
+}).join(’’);
 }
 
-document.addEventListener(‘input’,()=>{clearTimeout(window._t);window._t=setTimeout(saveAll,1800);});
+document.addEventListener(‘input’,function(){clearTimeout(window._t);window._t=setTimeout(saveAll,1800);});
 </script>
 
 </body>
