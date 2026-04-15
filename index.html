@@ -1078,6 +1078,16 @@ function renderGratitude(){
 }
 
 /* ── GOALS ── */
+function updateGoalProg(idx,val){
+  S.goals[idx].progress=+val;
+  const cards=document.querySelectorAll('.goal-card');
+  if(cards[idx]){
+    const bar=cards[idx].querySelector('.prog-bar');
+    const pct=cards[idx].querySelector('.goal-card > div:nth-last-child(3) span:last-child');
+    if(bar)bar.style.width=val+'%';
+    if(pct)pct.textContent=val+'%';
+  }
+}
 const GOAL_CATS=['Career','Health','Financial','Personal Growth','Relationships','Creative'];
 function addGoal(){S.goals.push({title:'New goal',cat:'Career',why:'',deadline:'',progress:0});renderGoals();saveAll();}
 function deleteGoal(i){S.goals.splice(i,1);renderGoals();saveAll();}
@@ -1100,7 +1110,7 @@ function renderGoals(){
         <input type="text" class="goal-inp" data-idx="${i}" data-f="why" value="${esc(g.why)}" placeholder="Your motivation..."></div>
       <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text3);margin-bottom:5px"><span>Progress</span><span>${g.progress||0}%</span></div>
       <div class="prog-wrap"><div class="prog-bar navy" style="width:${g.progress||0}%;background:var(--navy)"></div></div>
-      <input type="range" class="goal-prog" data-idx="${i}" min="0" max="100" value="${g.progress||0}" style="width:100%;margin-top:8px;accent-color:var(--navy)" oninput="S.goals[${i}].progress=+this.value;document.querySelector('.goal-prog[data-idx=\\'${i}\\']').previousElementSibling.firstChild.style.width=this.value+'%';this.previousElementSibling.previousElementSibling.lastChild.textContent=this.value+'%'">
+      <input type="range" class="goal-prog" data-idx="${i}" min="0" max="100" value="${g.progress||0}" style="width:100%;margin-top:8px;accent-color:var(--navy)" oninput="updateGoalProg(${i},this.value)">
     </div>`).join('');
 }
 
@@ -1227,9 +1237,9 @@ function esc(s){if(!s)return’’;return String(s).replace(/&/g,’&’).replac
 const STICKER_SETS = {
 ‘Mood’: [‘😊’,‘😍’,‘🥰’,‘😎’,‘😴’,‘😤’,‘🥳’,‘😢’,‘😂’,‘🤩’,‘😌’,‘🔥’,‘✨’,‘💫’,‘⭐’,‘🌟’],
 ‘Nature’: [‘🌸’,‘🌺’,‘🌻’,‘🌹’,‘🍀’,‘🌿’,‘🍃’,‘🌈’,‘☀️’,‘🌙’,‘⛅’,‘🌊’,‘🦋’,‘🐝’,‘🌵’,‘🍁’],
-‘Events’: [‘🎉’,‘🎂’,‘🎁’,‘🎈’,‘🏖️’,‘✈️’,‘🎓’,‘💍’,‘🏆’,‘🎯’,‘📅’,‘📌’,‘🔔’,‘💌’,‘🎵’,‘🎨’],
-‘Health’: [‘💪’,‘🏃’,‘🧘’,‘🥗’,‘💊’,‘🏋️’,‘🚴’,‘🧠’,‘❤️’,‘💤’,‘🥤’,‘🌅’,‘🍎’,‘🥦’,‘🧘’,‘🏊’],
-‘Work’: [‘💼’,‘📝’,‘💡’,‘🖥️’,‘📊’,‘✅’,‘⏰’,‘☕’,‘📚’,‘🎯’,‘🔑’,‘💰’,‘📱’,‘🤝’,‘📈’,‘🗓️’],
+‘Events’: [‘🎉’,‘🎂’,‘🎁’,‘🎈’,‘🏖️’,‘✈️’,‘🎓’,‘💍’,‘🏆’,‘target’,‘date’,‘📌’,‘🔔’,‘💌’,‘🎵’,‘🎨’],
+‘Health’: [‘💪’,‘🏃’,‘🧘’,‘🥗’,‘💊’,‘🏋️’,‘🚴’,‘🧠’,‘❤️’,‘💤’,‘🥤’,‘morning’,‘🍎’,‘🥦’,‘🧘’,‘🏊’],
+‘Work’: [‘💼’,‘📝’,‘💡’,‘🖥️’,‘📊’,‘ok’,‘clock’,‘☕’,‘📚’,‘target’,‘🔑’,‘💰’,‘📱’,‘🤝’,‘📈’,‘🗓️’],
 ‘Fun’: [‘🎮’,‘🎬’,‘🎤’,‘🍕’,‘🍦’,‘🌮’,‘🎸’,‘⚽’,‘🏀’,‘🎲’,‘🎠’,‘🎡’,‘🎢’,‘🃏’,‘🎳’,‘🛹’],
 };
 
@@ -1326,14 +1336,14 @@ if (‘Notification’ in window) {
 Notification.requestPermission().then(perm => {
 if (perm === ‘granted’) {
 document.getElementById(‘notif-permission-banner’).style.display = ‘none’;
-showNotif(‘✅’, ‘Notifications enabled’, ‘You will now receive reminders even when the app is closed.’);
+showNotif(‘ok’, ‘Notifications enabled’, ‘You will now receive reminders even when the app is closed.’);
 saveAlerts();
 }
 });
 }
 }
 
-function sendBrowserNotif(title, body, icon=‘🔔’) {
+function sendBrowserNotif(title, body) {
 if (‘Notification’ in window && Notification.permission === ‘granted’) {
 new Notification(title, { body, icon: ‘/favicon.ico’ });
 }
@@ -1394,7 +1404,7 @@ const id = setInterval(() => {
 const now = new Date();
 const [h, m] = a.dailyTime.split(’:’).map(Number);
 if (now.getHours() === h && now.getMinutes() === m) {
-showNotif(‘🌅’, ‘Good morning!’, ‘Time to plan your day. Open your planner!’);
+showNotif(‘morning’, ‘Good morning!’, ‘Time to plan your day. Open your planner!’);
 sendBrowserNotif(‘Good morning!’, ‘Time to plan your day in Apex Planner!’);
 }
 }, 60000);
@@ -1412,8 +1422,8 @@ const startMins = sh * 60 + sm;
 const endMins = eh * 60 + em;
 if (nowMins >= startMins && nowMins <= endMins && now.getMinutes() === 0 && now.getHours() % 2 === 0) {
 const remaining = 8 - (S.water || 0);
-showNotif(‘💧’, ‘Water reminder’, ‘Don’t forget to hydrate! You have ’ + remaining + ’ glasses left today.’);
-sendBrowserNotif(‘Water reminder 💧’, ‘Don’t forget to hydrate! ’ + remaining + ’ glasses left.’);
+showNotif(‘water’, ‘Water reminder’, ‘Drink more water! You have ’ + remaining + ’ glasses left today.’);
+sendBrowserNotif(‘Water reminder’, ‘Drink more water! ’ + remaining + ’ glasses left.’);
 }
 }, 60000);
 alertIntervals.push(id);
@@ -1427,7 +1437,7 @@ const in15 = now.getHours() * 60 + now.getMinutes() + 15;
 const h15 = Math.floor(in15 / 60);
 const event = S.schedule && S.schedule[h15];
 if (event && now.getMinutes() === 45) {
-showNotif(‘⏰’, ‘Coming up in 15 min’, event);
+showNotif(‘clock’, ‘Coming up in 15 min’, event);
 sendBrowserNotif(‘Coming up in 15 min ⏰’, event);
 }
 }, 60000);
@@ -1473,7 +1483,7 @@ if (isNaN(deadline)) return;
 const daysLeft = Math.ceil((deadline - now) / (1000 * 60 * 60 * 24));
 if (daysLeft >= 0 && daysLeft <= 3) {
 const msg = daysLeft === 0 ? ‘Due today!’ : daysLeft + ’ days left’;
-showNotif(‘🎯’, ’Goal deadline: ’ + g.title, msg);
+showNotif(‘target’, ’Goal deadline: ’ + g.title, msg);
 sendBrowserNotif(’Goal deadline: ’ + g.title, msg);
 }
 });
@@ -1484,8 +1494,8 @@ const now = new Date();
 const key = now.getFullYear() + ‘-’ + now.getMonth() + ‘-’ + now.getDate();
 const stickers = S.calStickers && S.calStickers[key];
 if (stickers && stickers.length) {
-showNotif(‘📅’, ‘You have calendar events today’, stickers.join(’ ‘) + ’ — check your planner!’);
-sendBrowserNotif(‘Events today 📅’, ‘You have ’ + stickers.length + ’ items marked for today.’);
+showNotif(‘date’, ‘You have calendar events today’, stickers.join(’ ‘) + ’ - check your planner!’);
+sendBrowserNotif(‘Events today’, ‘You have ’ + stickers.length + ’ items marked for today.’);
 }
 }
 
@@ -1500,13 +1510,13 @@ const now = new Date();
 const nextHour = now.getHours() + 1;
 const event = S.schedule && S.schedule[nextHour];
 if (event) {
-showNotif(‘⏰’, ‘Upcoming today’, event + ’ — in about ’ + (60 - now.getMinutes()) + ’ min’);
+showNotif(‘clock’, ‘Upcoming today’, event + ’ — in about ’ + (60 - now.getMinutes()) + ’ min’);
 }
 }, 5000);
 }
 if (a.water && (S.water || 0) < 3 && new Date().getHours() > 12) {
 setTimeout(() => {
-showNotif(‘💧’, ‘Water check’, ‘You’ve only had ’ + (S.water||0) + ’ glasses today. Stay hydrated!’);
+showNotif(‘water’, ‘Water check’, ‘You have only had ’ + (S.water||0) + ’ glasses today. Stay hydrated!’);
 }, 6000);
 }
 }
@@ -1516,11 +1526,11 @@ const el = document.getElementById(‘upcoming-alerts’);
 if (!el) return;
 const a = getAlertSettings();
 const items = [];
-if (a.daily) items.push({ icon: ‘🌅’, label: ‘Daily check-in’, time: a.dailyTime });
-if (a.schedule) items.push({ icon: ‘⏰’, label: ‘Schedule reminders’, time: ‘15 min before events’ });
-if (a.goals) items.push({ icon: ‘🎯’, label: ‘Goal deadline alerts’, time: ‘When within 3 days’ });
-if (a.calendar) items.push({ icon: ‘📅’, label: ‘Calendar day alerts’, time: ‘8:00 AM on event days’ });
-if (a.water) items.push({ icon: ‘💧’, label: ‘Water reminders’, time: ’Every 2 hrs, ’ + (a.waterStart||‘08:00’) + ’ – ’ + (a.waterEnd||‘20:00’) });
+if (a.daily) items.push({ icon: ‘morning’, label: ‘Daily check-in’, time: a.dailyTime });
+if (a.schedule) items.push({ icon: ‘clock’, label: ‘Schedule reminders’, time: ‘15 min before events’ });
+if (a.goals) items.push({ icon: ‘target’, label: ‘Goal deadline alerts’, time: ‘When within 3 days’ });
+if (a.calendar) items.push({ icon: ‘date’, label: ‘Calendar day alerts’, time: ‘8:00 AM on event days’ });
+if (a.water) items.push({ icon: ‘water’, label: ‘Water reminders’, time: ’Every 2 hrs, ’ + (a.waterStart||‘08:00’) + ’ – ’ + (a.waterEnd||‘20:00’) });
 
 if (!items.length) {
 el.innerHTML = ‘<div class="empty">No alerts enabled yet. Toggle some on above!</div>’;
