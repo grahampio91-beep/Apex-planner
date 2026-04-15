@@ -1,5 +1,1204 @@
-{
-  "returncode" : 0,
-  "stdout" : "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, viewport-fit=cover\">\n<title>Apex Planner<\/title>\n<link href=\"https:\/\/fonts.googleapis.com\/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap\" rel=\"stylesheet\">\n<style>\n:root {\n  --navy: #0F1F3D;\n  --navy2: #1B2A4A;\n  --gold: #C9943A;\n  --gold-light: #F0C070;\n  --cream: #FAF8F4;\n  --surface: #FFFFFF;\n  --surface2: #F4F2EE;\n  --border: #E2DDD6;\n  --text: #1A1612;\n  --text2: #5A5248;\n  --text3: #9A9088;\n  --success: #2D7A4F;\n  --danger: #C0392B;\n  --radius: 14px;\n  --radius-sm: 9px;\n  --nav-h: 68px;\n  --top-h: 56px;\n}\n\n* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }\n\nbody {\n  font-family: 'DM Sans', sans-serif;\n  background: var(--cream);\n  color: var(--text);\n  min-height: 100vh;\n  font-size: 15px;\n  line-height: 1.6;\n  overscroll-behavior: none;\n}\n\n\/* ── LOCK SCREEN ── *\/\n#lock-screen {\n  position: fixed; inset: 0;\n  background: var(--navy);\n  display: flex; align-items: center; justify-content: center;\n  z-index: 999;\n  flex-direction: column;\n  gap: 20px;\n}\n#lock-screen.hidden { display: none; }\n.lock-card {\n  background: var(--navy2);\n  border: 1px solid rgba(201,148,58,0.3);\n  border-radius: 20px;\n  padding: 40px 32px;\n  width: min(400px, 92vw);\n  text-align: center;\n}\n.lock-logo { font-family: 'DM Serif Display', serif; color: var(--gold-light); font-size: 28px; margin-bottom: 4px; }\n.lock-sub { color: rgba(255,255,255,0.38); font-size: 12px; margin-bottom: 28px; text-transform: uppercase; letter-spacing: 1.5px; }\n.lock-step { display: none; }\n.lock-step.active { display: block; }\n.lock-step-label { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: var(--gold); margin-bottom: 18px; font-weight: 600; }\n.lock-input-wrap { position: relative; margin-bottom: 10px; }\n.lock-input {\n  width: 100%; background: rgba(255,255,255,0.12);\n  border: 1px solid rgba(255,255,255,0.2); border-radius: var(--radius-sm);\n  color: #fff; -webkit-text-fill-color: #fff; caret-color: var(--gold-light);\n  padding: 13px 44px 13px 18px; font-size: 16px; font-family: inherit;\n  text-align: center; letter-spacing: 4px; outline: none; transition: border-color 0.2s, background 0.2s;\n}\n.lock-input:focus { border-color: var(--gold); background: rgba(255,255,255,0.17); }\n.lock-input::placeholder { color: rgba(255,255,255,0.3); -webkit-text-fill-color: rgba(255,255,255,0.3); letter-spacing: 1px; font-size: 13px; }\n.lock-input:-webkit-autofill, .lock-input:-webkit-autofill:focus {\n  -webkit-box-shadow: 0 0 0 1000px #1B2A4A inset; -webkit-text-fill-color: #fff;\n}\n.show-pw-btn {\n  position: absolute; right: 13px; top: 50%; transform: translateY(-50%);\n  background: none; border: none; cursor: pointer; color: rgba(255,255,255,0.35);\n  transition: color 0.2s; line-height: 0; padding: 4px;\n}\n.show-pw-btn:hover { color: rgba(255,255,255,0.75); }\n.lock-strength { display: flex; gap: 4px; margin: 8px 0 4px; }\n.strength-bar { height: 3px; flex: 1; border-radius: 2px; background: rgba(255,255,255,0.1); transition: background 0.3s; }\n.strength-bar.weak { background: #e74c3c; } .strength-bar.ok { background: #e67e22; }\n.strength-bar.good { background: #f1c40f; } .strength-bar.strong { background: #2ecc71; }\n.strength-lbl { font-size: 11px; color: rgba(255,255,255,0.3); text-align: left; margin-bottom: 12px; }\n.lock-hint { color: rgba(255,255,255,0.28); font-size: 12px; margin-bottom: 18px; line-height: 1.6; }\n.lock-btn {\n  width: 100%; background: var(--gold); color: white; border: none;\n  border-radius: var(--radius-sm); padding: 13px; font-size: 15px;\n  font-weight: 600; font-family: inherit; cursor: pointer; transition: background 0.2s;\n}\n.lock-btn:hover { background: #b8832a; }\n.lock-btn-ghost {\n  width: 100%; background: transparent; color: rgba(255,255,255,0.38);\n  border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-sm);\n  padding: 10px; font-size: 13px; font-family: inherit; cursor: pointer; margin-top: 10px; transition: all 0.2s;\n}\n.lock-btn-ghost:hover { color: rgba(255,255,255,0.65); border-color: rgba(255,255,255,0.22); }\n.lock-error { color: #ff7675; font-size: 13px; margin-top: 8px; min-height: 18px; }\n\n\/* ── LAYOUT ── *\/\n#app { display: flex; flex-direction: column; min-height: 100vh; }\n\n\/* ── TOP BAR ── *\/\n.topbar {\n  height: var(--top-h); background: var(--surface);\n  border-bottom: 1px solid var(--border);\n  display: flex; align-items: center; justify-content: space-between;\n  padding: 0 20px; position: sticky; top: 0; z-index: 50;\n}\n.topbar-logo { font-family: 'DM Serif Display', serif; font-size: 20px; color: var(--navy); }\n.topbar-title { font-family: 'DM Serif Display', serif; font-size: 18px; color: var(--navy); }\n.topbar-date { font-size: 12px; color: var(--text3); }\n.save-btn {\n  background: var(--navy); color: white; border: none; border-radius: var(--radius-sm);\n  padding: 7px 16px; font-size: 13px; font-weight: 500; font-family: inherit; cursor: pointer;\n}\n\n\/* ── CONTENT ── *\/\n.content {\n  flex: 1; padding: 20px 16px;\n  padding-bottom: calc(var(--nav-h) + 16px);\n  max-width: 680px; margin: 0 auto; width: 100%;\n}\n\n\/* ── PANELS ── *\/\n.panel { display: none; animation: fadeIn 0.18s ease; }\n.panel.active { display: block; }\n@keyframes fadeIn { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:translateY(0); } }\n\n\/* ── BOTTOM NAV ── *\/\n.bottom-nav {\n  position: fixed; bottom: 0; left: 0; right: 0;\n  height: var(--nav-h);\n  background: var(--surface);\n  border-top: 1px solid var(--border);\n  display: flex; align-items: stretch;\n  z-index: 50;\n  padding-bottom: env(safe-area-inset-bottom);\n}\n.nav-item {\n  flex: 1; display: flex; flex-direction: column; align-items: center;\n  justify-content: center; gap: 3px; cursor: pointer;\n  color: var(--text3); font-size: 10px; font-weight: 500;\n  transition: color 0.15s; padding: 8px 4px; border: none; background: none;\n  font-family: inherit;\n}\n.nav-item.active { color: var(--navy); }\n.nav-item svg { width: 22px; height: 22px; }\n.nav-dot {\n  width: 4px; height: 4px; border-radius: 50%;\n  background: var(--gold); margin-top: 1px;\n  opacity: 0; transition: opacity 0.15s;\n}\n.nav-item.active .nav-dot { opacity: 1; }\n\n\/* ── MORE MENU ── *\/\n.more-menu {\n  position: fixed; bottom: calc(var(--nav-h) + 8px); left: 0; right: 0;\n  background: var(--surface); border-top: 1px solid var(--border);\n  border-radius: 20px 20px 0 0; padding: 16px; z-index: 49;\n  display: none; box-shadow: 0 -4px 24px rgba(0,0,0,0.1);\n}\n.more-menu.open { display: block; }\n.more-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }\n.more-item {\n  display: flex; flex-direction: column; align-items: center; gap: 6px;\n  padding: 14px 8px; border-radius: var(--radius-sm); cursor: pointer;\n  background: var(--surface2); border: 1px solid var(--border);\n  font-size: 11px; font-weight: 500; color: var(--text2);\n  transition: all 0.15s; font-family: inherit;\n}\n.more-item.active { background: rgba(15,31,61,0.07); color: var(--navy); border-color: var(--navy); }\n.more-item svg { width: 20px; height: 20px; }\n.more-overlay { position: fixed; inset: 0; z-index: 48; display: none; }\n.more-overlay.open { display: block; }\n\n\/* ── CARDS ── *\/\n.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; }\n.card-title { font-family: 'DM Serif Display', serif; font-size: 16px; color: var(--navy); margin-bottom: 14px; }\n.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }\n\n\/* ── STAT BOXES ── *\/\n.stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }\n.stat-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }\n.stat-val { font-family: 'DM Serif Display', serif; font-size: 28px; color: var(--navy); line-height: 1; }\n.stat-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.8px; margin-top: 3px; }\n\n\/* ── FORM ── *\/\ninput[type=text], input[type=number], textarea, select {\n  width: 100%; background: var(--surface2); border: 1px solid var(--border);\n  border-radius: var(--radius-sm); padding: 10px 13px; font-family: inherit;\n  font-size: 14px; color: var(--text); outline: none; transition: border-color 0.15s;\n}\ninput:focus, textarea:focus, select:focus { border-color: var(--gold); background: white; }\ntextarea { resize: vertical; min-height: 72px; }\nlabel { font-size: 12px; font-weight: 500; color: var(--text2); display: block; margin-bottom: 4px; }\n.field { margin-bottom: 12px; }\n\n\/* ── BUTTONS ── *\/\n.btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 15px; border-radius: var(--radius-sm); font-family: inherit; font-size: 13px; font-weight: 500; cursor: pointer; border: none; transition: all 0.15s; }\n.btn-primary { background: var(--navy); color: white; }\n.btn-outline { background: transparent; color: var(--text2); border: 1px solid var(--border); }\n.btn-gold { background: var(--gold); color: white; }\n.btn-sm { padding: 5px 11px; font-size: 12px; }\n.btn-danger { background: transparent; color: var(--danger); border: 1px solid rgba(192,57,43,0.2); }\n\n\/* ── TAGS ── *\/\n.tag { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 100px; font-size: 11px; font-weight: 500; }\n.tag-gold { background: rgba(201,148,58,0.12); color: #9A6B1A; }\n.tag-navy { background: rgba(15,31,61,0.08); color: var(--navy); }\n.tag-green { background: rgba(45,122,79,0.1); color: var(--success); }\n.tag-red { background: rgba(192,57,43,0.1); color: var(--danger); }\n\n\/* ── PROGRESS ── *\/\n.prog-wrap { background: var(--surface2); border-radius: 100px; height: 7px; overflow: hidden; }\n.prog-bar { height: 100%; border-radius: 100px; background: var(--gold); transition: width 0.4s; }\n.prog-bar.green { background: var(--success); }\n\n\/* ── DASHBOARD ── *\/\n.welcome-band {\n  background: var(--navy); border-radius: var(--radius); padding: 22px 20px; margin-bottom: 16px;\n}\n.welcome-band h2 { font-family: 'DM Serif Display', serif; color: white; font-size: 22px; }\n.welcome-band p { color: rgba(255,255,255,0.45); font-size: 13px; margin-top: 3px; }\n.welcome-quote { color: var(--gold-light); font-style: italic; font-size: 13px; margin-top: 12px; font-family: 'DM Serif Display', serif; }\n\n\/* ── TO-DO ── *\/\n.todo-add { display: flex; gap: 8px; margin-bottom: 14px; }\n.todo-add input { flex: 1; }\n.todo-item { display: flex; align-items: center; gap: 10px; padding: 11px 13px; background: var(--surface2); border-radius: var(--radius-sm); margin-bottom: 6px; border: 1px solid transparent; transition: all 0.15s; }\n.todo-item:hover { border-color: var(--border); background: white; }\n.todo-item.done { opacity: 0.45; }\n.todo-cb { width: 20px; height: 20px; border: 2px solid var(--border); border-radius: 50%; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: white; transition: all 0.15s; }\n.todo-cb.checked { background: var(--success); border-color: var(--success); color: white; font-size: 11px; font-weight: 700; }\n.todo-text { flex: 1; font-size: 14px; }\n.todo-item.done .todo-text { text-decoration: line-through; }\n.cat-tabs { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }\n.cat-tab { padding: 5px 13px; border-radius: 100px; font-size: 12px; cursor: pointer; border: 1px solid var(--border); background: white; color: var(--text2); font-family: inherit; transition: all 0.15s; }\n.cat-tab.active { background: var(--navy); color: white; border-color: var(--navy); }\n.del-btn { background: none; border: none; cursor: pointer; color: var(--text3); padding: 3px; opacity: 0; font-size: 14px; }\n.todo-item:hover .del-btn { opacity: 1; }\n\n\/* ── SCHEDULE ── *\/\n.time-block { display: grid; grid-template-columns: 64px 1fr 24px; gap: 10px; align-items: center; padding: 8px 10px; border-radius: var(--radius-sm); background: var(--surface2); margin-bottom: 3px; border: 1px solid transparent; transition: all 0.15s; }\n.time-block:hover { border-color: var(--border); background: white; }\n.time-block.has-event { background: rgba(201,148,58,0.06); border-color: rgba(201,148,58,0.2); }\n.time-label { font-size: 11px; font-weight: 600; color: var(--text3); }\n.time-input { border: none !important; background: transparent !important; padding: 3px 0 !important; font-size: 14px; }\n\n\/* ── GRATITUDE ── *\/\n.grat-entry { background: var(--surface2); border-radius: var(--radius); padding: 18px; margin-bottom: 12px; border-left: 3px solid var(--gold); }\n.grat-date { font-size: 12px; color: var(--text3); font-weight: 500; margin-bottom: 12px; }\n.grat-label { font-size: 10px; font-weight: 600; color: var(--gold); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px; }\n\n\/* ── GOALS ── *\/\n.goal-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; margin-bottom: 12px; }\n\n\/* ── MEALS ── *\/\n.meal-day { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 10px; overflow: hidden; }\n.meal-day-header { background: var(--navy); padding: 10px 16px; font-size: 13px; font-weight: 600; color: white; display: flex; justify-content: space-between; align-items: center; }\n.meal-day-header.weekend { background: var(--gold); }\n.meal-slots { padding: 12px 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }\n.meal-slot label { font-size: 11px; }\n.meal-slot textarea { min-height: 52px; font-size: 13px; }\n\n\/* ── BUDGET ── *\/\n.budget-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }\n.bud-stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; border-top: 3px solid var(--border); }\n.bud-stat.income { border-top-color: var(--success); }\n.bud-stat.expense { border-top-color: var(--danger); }\n.bud-stat.balance { border-top-color: var(--gold); }\n.bud-val { font-family: 'DM Serif Display', serif; font-size: 24px; color: var(--navy); }\n.bud-lbl { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.8px; margin-top: 2px; }\n.bud-table { width: 100%; border-collapse: collapse; }\n.bud-table th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text3); padding: 6px 10px; border-bottom: 2px solid var(--border); }\n.bud-table td { padding: 9px 10px; border-bottom: 1px solid var(--border); font-size: 14px; }\n.bud-table tr:last-child td { border-bottom: none; }\n.amt-input { border: none !important; background: transparent !important; padding: 0 !important; font-size: 14px; text-align: right; width: 90px; font-family: 'DM Sans', sans-serif; }\n.add-row { display: flex; gap: 8px; margin-top: 12px; }\n.add-row input { flex: 1; }\n\n\/* ── WATER ── *\/\n.water-big { font-family: 'DM Serif Display', serif; font-size: 52px; color: var(--navy); line-height: 1; text-align: center; }\n.water-sub { font-size: 13px; color: var(--text3); text-align: center; margin-bottom: 20px; }\n.water-glasses { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin: 20px 0; }\n.glass { width: 48px; height: 62px; border: 2px solid var(--border); border-radius: 4px 4px 10px 10px; cursor: pointer; position: relative; overflow: hidden; background: white; transition: border-color 0.2s; }\n.glass.filled { border-color: #2980B9; }\n.glass-fill { position: absolute; bottom: 0; left: 0; right: 0; background: #2980B9; transition: height 0.35s ease; border-radius: 0 0 8px 8px; }\n.glass-num { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--text3); z-index: 1; }\n.glass.filled .glass-num { color: white; }\n.water-btns { display: flex; gap: 10px; justify-content: center; margin-top: 16px; }\n\n\/* ── MONTHLY ── *\/\n.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }\n.cal-hdr { text-align: center; font-size: 10px; font-weight: 600; color: var(--text3); text-transform: uppercase; padding: 6px 0; }\n.cal-day { aspect-ratio: 1; border: 1px solid var(--border); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; background: white; cursor: pointer; transition: all 0.15s; position: relative; }\n.cal-day:hover { border-color: var(--gold); }\n.cal-day.today { background: var(--navy); color: white; border-color: var(--navy); }\n.cal-day.other-month { opacity: 0.25; }\n.cal-day.weekend:not(.today) { background: var(--surface2); }\n\n\/* ── TOAST ── *\/\n.toast { position: fixed; bottom: calc(var(--nav-h) + 12px); left: 50%; transform: translateX(-50%) translateY(10px); background: var(--success); color: white; padding: 9px 20px; border-radius: 100px; font-size: 13px; font-weight: 500; opacity: 0; transition: all 0.3s; z-index: 200; pointer-events: none; white-space: nowrap; }\n.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }\n\n.divider { border: none; border-top: 1px solid var(--border); margin: 14px 0; }\n.empty { text-align: center; color: var(--text3); font-size: 14px; padding: 32px 0; }\n.section-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }\n.section-row h2 { font-family: 'DM Serif Display', serif; font-size: 20px; color: var(--navy); }\n\n\/* ── STICKER PICKER ── *\/\n.sticker-overlay { position: fixed; inset: 0; z-index: 200; display: none; }\n.sticker-overlay.open { display: block; }\n.sticker-panel {\n  position: fixed; bottom: calc(var(--nav-h) + 10px); left: 50%;\n  transform: translateX(-50%);\n  background: var(--surface); border: 1px solid var(--border);\n  border-radius: 20px; padding: 16px; z-index: 201;\n  box-shadow: 0 -4px 32px rgba(0,0,0,0.13);\n  width: min(360px, 94vw);\n  display: none;\n}\n.sticker-panel.open { display: block; }\n.sticker-panel-title {\n  font-size: 12px; font-weight: 600; color: var(--text3);\n  text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;\n  display: flex; justify-content: space-between; align-items: center;\n}\n.sticker-close { background: none; border: none; cursor: pointer; color: var(--text3); font-size: 18px; line-height: 1; padding: 0; }\n.sticker-tabs { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }\n.sticker-tab { padding: 4px 12px; border-radius: 100px; font-size: 12px; cursor: pointer; border: 1px solid var(--border); background: white; color: var(--text2); font-family: inherit; transition: all 0.15s; }\n.sticker-tab.active { background: var(--navy); color: white; border-color: var(--navy); }\n.sticker-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; max-height: 180px; overflow-y: auto; }\n.sticker-btn { font-size: 22px; padding: 6px; border: none; background: none; cursor: pointer; border-radius: 8px; transition: background 0.15s; line-height: 1; }\n.sticker-btn:hover { background: var(--surface2); }\n.sticker-btn.selected-sticker { background: rgba(201,148,58,0.15); outline: 2px solid var(--gold); }\n.sticker-actions { display: flex; gap: 8px; margin-top: 12px; }\n.cal-day { cursor: pointer; flex-direction: column; align-items: center; justify-content: flex-start; padding: 4px 2px; min-height: 44px; }\n.cal-day-num { font-size: 12px; font-weight: 500; line-height: 1.2; }\n.cal-stickers { display: flex; flex-wrap: wrap; gap: 1px; justify-content: center; margin-top: 2px; line-height: 1; }\n.cal-sticker { font-size: 13px; line-height: 1; }\n\n\n\/* ── AFFIRMATION SELECT ── *\/\n#affirmation-select {\n  width: 100%;\n  border: 1px solid var(--border);\n  border-radius: var(--radius-sm);\n  background: var(--surface2);\n  font-family: inherit;\n  font-size: 13px;\n  color: var(--text);\n  padding: 4px 6px;\n  outline: none;\n  overflow-y: auto;\n  cursor: pointer;\n}\n#affirmation-select:focus { border-color: var(--gold); background: white; }\n#affirmation-select option { padding: 6px 8px; line-height: 1.6; }\n#affirmation-select optgroup { font-size: 11px; font-weight: 700; color: var(--text3); }\n<\/style>\n<\/head>\n<body>\n\n<!-- LOCK -->\n<div id=\"lock-screen\">\n  <div class=\"lock-card\">\n    <div class=\"lock-logo\">Apex Planner<\/div>\n    <div class=\"lock-sub\">Professional Edition<\/div>\n\n    <div class=\"lock-step active\" id=\"step-setup\">\n      <div class=\"lock-step-label\">Create your password<\/div>\n      <div class=\"lock-input-wrap\">\n        <input type=\"password\" class=\"lock-input\" id=\"setup-pw1\" placeholder=\"Choose a password\" autocomplete=\"new-password\" oninput=\"checkStrength()\">\n        <button type=\"button\" class=\"show-pw-btn\" onclick=\"togglePw('setup-pw1',this)\">\n          <svg width=\"18\" height=\"18\" viewBox=\"0 0 20 20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\"><path d=\"M2 10s3-6 8-6 8 6 8 6-3 6-8 6-8-6-8-6z\"\/><circle cx=\"10\" cy=\"10\" r=\"2.5\"\/><\/svg>\n        <\/button>\n      <\/div>\n      <div class=\"lock-input-wrap\">\n        <input type=\"password\" class=\"lock-input\" id=\"setup-pw2\" placeholder=\"Confirm password\" autocomplete=\"new-password\" onkeydown=\"if(event.key==='Enter')finishSetup()\">\n        <button type=\"button\" class=\"show-pw-btn\" onclick=\"togglePw('setup-pw2',this)\">\n          <svg width=\"18\" height=\"18\" viewBox=\"0 0 20 20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\"><path d=\"M2 10s3-6 8-6 8 6 8 6-3 6-8 6-8-6-8-6z\"\/><circle cx=\"10\" cy=\"10\" r=\"2.5\"\/><\/svg>\n        <\/button>\n      <\/div>\n      <div class=\"lock-strength\"><div class=\"strength-bar\" id=\"sb1\"><\/div><div class=\"strength-bar\" id=\"sb2\"><\/div><div class=\"strength-bar\" id=\"sb3\"><\/div><div class=\"strength-bar\" id=\"sb4\"><\/div><\/div>\n      <div class=\"strength-lbl\" id=\"strength-label\">Enter a password above<\/div>\n      <div class=\"lock-hint\">Saved only on your device. You'll enter this each time you open your planner.<\/div>\n      <button class=\"lock-btn\" onclick=\"finishSetup()\">Create password &amp; open planner<\/button>\n      <div class=\"lock-error\" id=\"setup-error\"><\/div>\n    <\/div>\n\n    <div class=\"lock-step\" id=\"step-login\">\n      <div class=\"lock-step-label\">Welcome back<\/div>\n      <div class=\"lock-input-wrap\">\n        <input type=\"password\" class=\"lock-input\" id=\"login-pw\" placeholder=\"Enter your password\" autocomplete=\"current-password\" onkeydown=\"if(event.key==='Enter')tryLogin()\">\n        <button type=\"button\" class=\"show-pw-btn\" onclick=\"togglePw('login-pw',this)\">\n          <svg width=\"18\" height=\"18\" viewBox=\"0 0 20 20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\"><path d=\"M2 10s3-6 8-6 8 6 8 6-3 6-8 6-8-6-8-6z\"\/><circle cx=\"10\" cy=\"10\" r=\"2.5\"\/><\/svg>\n        <\/button>\n      <\/div>\n      <button class=\"lock-btn\" onclick=\"tryLogin()\">Unlock my planner<\/button>\n      <div class=\"lock-error\" id=\"login-error\"><\/div>\n      <button class=\"lock-btn-ghost\" onclick=\"showReset()\">Forgot password? Reset planner<\/button>\n    <\/div>\n\n    <div class=\"lock-step\" id=\"step-reset\">\n      <div class=\"lock-step-label\" style=\"color:#ff7675\">Reset planner<\/div>\n      <div class=\"lock-hint\" style=\"color:rgba(255,130,120,0.85);margin-bottom:18px\">This permanently erases all data and lets you set a new password. Cannot be undone.<\/div>\n      <button class=\"lock-btn\" style=\"background:#c0392b\" onclick=\"confirmReset()\">Yes, erase &amp; reset<\/button>\n      <button class=\"lock-btn-ghost\" onclick=\"showLogin()\">Cancel<\/button>\n    <\/div>\n  <\/div>\n<\/div>\n\n<div id=\"app\" style=\"display:none\">\n  <!-- TOP BAR -->\n  <div class=\"topbar\">\n    <div>\n      <div class=\"topbar-title\" id=\"topbar-title\">Dashboard<\/div>\n      <div class=\"topbar-date\" id=\"topbar-date\"><\/div>\n    <\/div>\n    <button class=\"save-btn\" onclick=\"saveAll()\">Save<\/button>\n  <\/div>\n\n  <!-- CONTENT -->\n  <div class=\"content\">\n\n    <!-- DASHBOARD -->\n    <div class=\"panel active\" id=\"panel-dashboard\">\n      <div class=\"welcome-band\">\n        <h2 id=\"welcome-msg\">Good morning!<\/h2>\n        <p id=\"welcome-date\"><\/p>\n        <div class=\"welcome-quote\" id=\"daily-quote\"><\/div>\n      <\/div>\n      <div class=\"stats-row\">\n        <div class=\"stat-box\"><div class=\"stat-val\" id=\"dash-tasks\">0<\/div><div class=\"stat-label\">Tasks left<\/div><\/div>\n        <div class=\"stat-box\"><div class=\"stat-val\" id=\"dash-water\">0<\/div><div class=\"stat-label\">Glasses today<\/div><\/div>\n        <div class=\"stat-box\"><div class=\"stat-val\" id=\"dash-goals\">0<\/div><div class=\"stat-label\">Active goals<\/div><\/div>\n      <\/div>\n      <div class=\"card\">\n        <div class=\"card-title\">Today's top tasks<\/div>\n        <div id=\"dash-todos\"><\/div>\n        <button class=\"btn btn-outline\" style=\"width:100%;margin-top:10px\" onclick=\"navigate('todo')\">Open to-do list →<\/button>\n      <\/div>\n      <div class=\"card\">\n        <div class=\"card-title\">Today's schedule<\/div>\n        <div id=\"dash-schedule\"><\/div>\n        <button class=\"btn btn-outline\" style=\"width:100%;margin-top:10px\" onclick=\"navigate('schedule')\">Open schedule →<\/button>\n      <\/div>\n    <\/div>\n\n    <!-- MONTHLY -->\n    <div class=\"panel\" id=\"panel-monthly\">\n      <div class=\"section-row\">\n        <h2 id=\"cal-title\">January<\/h2>\n        <div style=\"display:flex;gap:8px\">\n          <button class=\"btn btn-outline btn-sm\" onclick=\"changeMonth(-1)\">← Prev<\/button>\n          <button class=\"btn btn-outline btn-sm\" onclick=\"changeMonth(1)\">Next →<\/button>\n        <\/div>\n      <\/div>\n      <div class=\"card\" style=\"margin-bottom:14px\">\n        <div class=\"cal-grid\" id=\"cal-grid\"><\/div>\n      <\/div>\n      <div class=\"card\">\n        <div class=\"field\"><label>Month intentions<\/label><textarea id=\"month-intent\" placeholder=\"What do you want to focus on this month?\"><\/textarea><\/div>\n        <div class=\"field\"><label>Priority 1<\/label><input type=\"text\" id=\"mpri1\" placeholder=\"Top priority this month\"><\/div>\n        <div class=\"field\"><label>Priority 2<\/label><input type=\"text\" id=\"mpri2\" placeholder=\"Second priority\"><\/div>\n        <div class=\"field\"><label>Priority 3<\/label><input type=\"text\" id=\"mpri3\" placeholder=\"Third priority\"><\/div>\n      <\/div>\n    <\/div>\n\n    <!-- SCHEDULE -->\n    <div class=\"panel\" id=\"panel-schedule\">\n      <div class=\"section-row\"><h2>Daily Schedule<\/h2><\/div>\n      <div class=\"card\" style=\"margin-bottom:14px\">\n        <div class=\"field\">\n          <label>Today's affirmation<\/label>\n          <div style=\"display:flex;gap:8px;align-items:flex-start\">\n            <div style=\"flex:1;display:flex;flex-direction:column;gap:6px\">\n              <select id=\"affirmation-select\" onchange=\"pickAffirmation(this.value)\"\n                style=\"max-height:110px;overflow-y:auto\" size=\"5\">\n                <option value=\"\" disabled>— Pick an affirmation —<\/option>\n                <optgroup label=\"✨ Confidence\">\n                  <option>I am capable of achieving anything I set my mind to.<\/option>\n                  <option>I believe in my strength and my ability to grow.<\/option>\n                  <option>I am worthy of success and everything good in life.<\/option>\n                  <option>I trust myself to make the right decisions.<\/option>\n                  <option>I am becoming the best version of myself every day.<\/option>\n                  <option>I radiate confidence, certainty, and positivity.<\/option>\n                <\/optgroup>\n                <optgroup label=\"🧠 Mindset\">\n                  <option>Today I choose progress over perfection.<\/option>\n                  <option>Every challenge I face is an opportunity to grow.<\/option>\n                  <option>I am in charge of how I feel and today I choose happiness.<\/option>\n                  <option>My mind is clear, focused, and ready for today.<\/option>\n                  <option>I release what I cannot control and focus on what I can.<\/option>\n                  <option>Small steps every day lead to big results.<\/option>\n                <\/optgroup>\n                <optgroup label=\"🌟 Abundance\">\n                  <option>I attract positivity, opportunity, and abundance.<\/option>\n                  <option>I am grateful for everything I have and excited for what's coming.<\/option>\n                  <option>Good things are always happening in my life.<\/option>\n                  <option>I deserve joy, love, success, and fulfillment.<\/option>\n                  <option>I am open to receiving all the wonderful things life has to offer.<\/option>\n                <\/optgroup>\n                <optgroup label=\"💪 Health &amp; Energy\">\n                  <option>I am healthy, energized, and full of vitality.<\/option>\n                  <option>I take care of my body and my body takes care of me.<\/option>\n                  <option>I wake up with purpose and go to bed with gratitude.<\/option>\n                  <option>I have the energy and drive to crush my goals today.<\/option>\n                  <option>I nourish my mind, body, and soul with love and care.<\/option>\n                <\/optgroup>\n                <optgroup label=\"❤️ Relationships\">\n                  <option>I am surrounded by people who love and support me.<\/option>\n                  <option>I give and receive love freely and generously.<\/option>\n                  <option>I attract kind, genuine, and uplifting people into my life.<\/option>\n                  <option>I show up fully for the people who matter most to me.<\/option>\n                <\/optgroup>\n                <optgroup label=\"💼 Work &amp; Purpose\">\n                  <option>My work makes a difference and I am proud of what I create.<\/option>\n                  <option>I am focused, disciplined, and productive today.<\/option>\n                  <option>I bring creativity, passion, and excellence to everything I do.<\/option>\n                  <option>I am exactly where I need to be on my journey.<\/option>\n                  <option>My goals are within reach and I am moving toward them.<\/option>\n                <\/optgroup>\n              <\/select>\n              <input type=\"text\" id=\"affirmation\" placeholder=\"Or type your own affirmation here...\">\n            <\/div>\n          <\/div>\n        <\/div>\n        <div class=\"grid-2\">\n          <div class=\"field\"><label>Today's win<\/label><input type=\"text\" id=\"refl-win\" placeholder=\"What went well?\"><\/div>\n          <div class=\"field\"><label>Energy (1–10)<\/label><input type=\"number\" id=\"refl-energy\" min=\"1\" max=\"10\" placeholder=\"7\"><\/div>\n        <\/div>\n      <\/div>\n      <div class=\"card\">\n        <div class=\"card-title\">Hourly planner<\/div>\n        <div id=\"schedule-grid\"><\/div>\n      <\/div>\n    <\/div>\n\n    <!-- TO-DO -->\n    <div class=\"panel\" id=\"panel-todo\">\n      <div class=\"section-row\"><h2>To-Do List<\/h2><\/div>\n      <div class=\"card\">\n        <div class=\"todo-add\">\n          <input type=\"text\" id=\"todo-input\" placeholder=\"Add a task...\" onkeydown=\"if(event.key==='Enter')addTodo()\">\n          <select id=\"todo-cat\" style=\"width:120px\">\n            <option>Work<\/option><option>Personal<\/option><option>Health<\/option><option>Errands<\/option>\n          <\/select>\n          <button class=\"btn btn-primary\" onclick=\"addTodo()\">Add<\/button>\n        <\/div>\n        <div class=\"cat-tabs\">\n          <button class=\"cat-tab active\" onclick=\"filterTodos('All')\">All<\/button>\n          <button class=\"cat-tab\" onclick=\"filterTodos('Work')\">Work<\/button>\n          <button class=\"cat-tab\" onclick=\"filterTodos('Personal')\">Personal<\/button>\n          <button class=\"cat-tab\" onclick=\"filterTodos('Health')\">Health<\/button>\n          <button class=\"cat-tab\" onclick=\"filterTodos('Errands')\">Errands<\/button>\n        <\/div>\n        <div id=\"todo-list\"><\/div>\n      <\/div>\n    <\/div>\n\n    <!-- GRATITUDE -->\n    <div class=\"panel\" id=\"panel-gratitude\">\n      <div class=\"section-row\">\n        <h2>Gratitude Journal<\/h2>\n        <button class=\"btn btn-gold\" onclick=\"addGratitude()\">+ New entry<\/button>\n      <\/div>\n      <div id=\"grat-list\"><\/div>\n    <\/div>\n\n    <!-- GOALS -->\n    <div class=\"panel\" id=\"panel-goals\">\n      <div class=\"section-row\">\n        <h2>Goal Setting<\/h2>\n        <button class=\"btn btn-primary\" onclick=\"addGoal()\">+ Add goal<\/button>\n      <\/div>\n      <div id=\"goals-list\"><\/div>\n    <\/div>\n\n    <!-- MEALS -->\n    <div class=\"panel\" id=\"panel-meals\">\n      <div class=\"section-row\"><h2>Meal Planner<\/h2><\/div>\n      <div id=\"meal-days\"><\/div>\n      <div class=\"card\">\n        <div class=\"card-title\">Grocery list<\/div>\n        <div id=\"grocery-list\" style=\"margin-bottom:10px\"><\/div>\n        <div class=\"add-row\">\n          <input type=\"text\" id=\"grocery-inp\" placeholder=\"Add item...\" onkeydown=\"if(event.key==='Enter')addGrocery()\">\n          <button class=\"btn btn-outline\" onclick=\"addGrocery()\">Add<\/button>\n        <\/div>\n      <\/div>\n    <\/div>\n\n    <!-- BUDGET -->\n    <div class=\"panel\" id=\"panel-budget\">\n      <div class=\"section-row\"><h2>Budget Tracker<\/h2><\/div>\n      <div class=\"budget-summary\">\n        <div class=\"bud-stat income\"><div class=\"bud-val\" id=\"bud-inc\">$0<\/div><div class=\"bud-lbl\">Income<\/div><\/div>\n        <div class=\"bud-stat expense\"><div class=\"bud-val\" id=\"bud-exp\">$0<\/div><div class=\"bud-lbl\">Expenses<\/div><\/div>\n        <div class=\"bud-stat balance\" style=\"grid-column:span 2\"><div class=\"bud-val\" id=\"bud-bal\">$0<\/div><div class=\"bud-lbl\">Remaining balance<\/div><\/div>\n      <\/div>\n      <div class=\"card\" style=\"margin-bottom:14px\">\n        <div class=\"card-title\">Income<\/div>\n        <table class=\"bud-table\"><thead><tr><th>Source<\/th><th style=\"text-align:right\">Amount<\/th><th><\/th><\/tr><\/thead><tbody id=\"inc-rows\"><\/tbody><\/table>\n        <div class=\"add-row\">\n          <input type=\"text\" id=\"inc-name\" placeholder=\"Source\">\n          <input type=\"number\" id=\"inc-amt\" placeholder=\"0\" style=\"width:90px\">\n          <button class=\"btn btn-outline\" onclick=\"addIncome()\">Add<\/button>\n        <\/div>\n      <\/div>\n      <div class=\"card\">\n        <div class=\"card-title\">Expenses<\/div>\n        <table class=\"bud-table\"><thead><tr><th>Category<\/th><th style=\"text-align:right\">Amount<\/th><th><\/th><\/tr><\/thead><tbody id=\"exp-rows\"><\/tbody><\/table>\n        <div class=\"add-row\">\n          <input type=\"text\" id=\"exp-name\" placeholder=\"Category\">\n          <input type=\"number\" id=\"exp-amt\" placeholder=\"0\" style=\"width:90px\">\n          <button class=\"btn btn-outline\" onclick=\"addExpense()\">Add<\/button>\n        <\/div>\n      <\/div>\n    <\/div>\n\n    <!-- WATER -->\n    <div class=\"panel\" id=\"panel-water\">\n      <div class=\"section-row\"><h2>Water Tracker<\/h2><\/div>\n      <div class=\"card\" style=\"padding:28px 20px\">\n        <div class=\"water-big\" id=\"water-count\">0<\/div>\n        <div class=\"water-sub\">glasses today (goal: 8)<\/div>\n        <div class=\"water-glasses\" id=\"water-glasses\"><\/div>\n        <div class=\"prog-wrap\" style=\"max-width:320px;margin:0 auto\">\n          <div class=\"prog-bar\" id=\"water-bar\" style=\"width:0%;background:#2980B9\"><\/div>\n        <\/div>\n        <div class=\"water-btns\">\n          <button class=\"btn btn-outline\" onclick=\"addWater()\">+ Glass<\/button>\n          <button class=\"btn btn-outline\" onclick=\"removeWater()\">− Remove<\/button>\n          <button class=\"btn btn-outline\" onclick=\"resetWater()\">Reset<\/button>\n        <\/div>\n      <\/div>\n      <div class=\"card\">\n        <div class=\"card-title\">Wellness log<\/div>\n        <div class=\"grid-2\">\n          <div class=\"field\"><label>Sleep (hrs)<\/label><input type=\"number\" id=\"w-sleep\" step=\"0.5\" placeholder=\"7.5\"><\/div>\n          <div class=\"field\"><label>Steps<\/label><input type=\"number\" id=\"w-steps\" placeholder=\"10000\"><\/div>\n          <div class=\"field\"><label>Exercise (min)<\/label><input type=\"number\" id=\"w-exercise\" placeholder=\"30\"><\/div>\n          <div class=\"field\"><label>Mood (1–10)<\/label><input type=\"number\" id=\"w-mood\" min=\"1\" max=\"10\" placeholder=\"8\"><\/div>\n        <\/div>\n      <\/div>\n    <\/div>\n\n  <\/div>\n\n\n  <!-- STICKER OVERLAY -->\n  <div class=\"sticker-overlay\" id=\"sticker-overlay\" onclick=\"closeSticker()\"><\/div>\n  <div class=\"sticker-panel\" id=\"sticker-panel\">\n    <div class=\"sticker-panel-title\">\n      <span id=\"sticker-day-label\">Add sticker<\/span>\n      <button class=\"sticker-close\" onclick=\"closeSticker()\">✕<\/button>\n    <\/div>\n    <div class=\"sticker-tabs\" id=\"sticker-tabs\"><\/div>\n    <div class=\"sticker-grid\" id=\"sticker-grid\"><\/div>\n    <div class=\"sticker-actions\">\n      <button class=\"btn btn-outline btn-sm\" onclick=\"clearDayStickers()\" style=\"flex:1\">Clear day<\/button>\n      <button class=\"btn btn-primary btn-sm\" onclick=\"closeSticker()\" style=\"flex:1\">Done<\/button>\n    <\/div>\n  <\/div>\n\n  <!-- BOTTOM NAV -->\n  <nav class=\"bottom-nav\" id=\"bottom-nav\">\n    <button class=\"nav-item active\" onclick=\"navigate('dashboard')\" data-page=\"dashboard\">\n      <svg viewBox=\"0 0 20 20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\"><rect x=\"3\" y=\"3\" width=\"6\" height=\"6\" rx=\"1.5\"\/><rect x=\"11\" y=\"3\" width=\"6\" height=\"6\" rx=\"1.5\"\/><rect x=\"3\" y=\"11\" width=\"6\" height=\"6\" rx=\"1.5\"\/><rect x=\"11\" y=\"11\" width=\"6\" height=\"6\" rx=\"1.5\"\/><\/svg>\n      Home\n      <div class=\"nav-dot\"><\/div>\n    <\/button>\n    <button class=\"nav-item\" onclick=\"navigate('todo')\" data-page=\"todo\">\n      <svg viewBox=\"0 0 20 20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\"><path d=\"M5 10l3 3 7-7\"\/><rect x=\"3\" y=\"3\" width=\"14\" height=\"14\" rx=\"2\"\/><\/svg>\n      Tasks\n      <div class=\"nav-dot\"><\/div>\n    <\/button>\n    <button class=\"nav-item\" onclick=\"navigate('schedule')\" data-page=\"schedule\">\n      <svg viewBox=\"0 0 20 20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\"><circle cx=\"10\" cy=\"10\" r=\"7\"\/><path d=\"M10 6v4l3 2\"\/><\/svg>\n      Schedule\n      <div class=\"nav-dot\"><\/div>\n    <\/button>\n    <button class=\"nav-item\" onclick=\"navigate('budget')\" data-page=\"budget\">\n      <svg viewBox=\"0 0 20 20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\"><rect x=\"2\" y=\"5\" width=\"16\" height=\"11\" rx=\"2\"\/><path d=\"M2 9h16\"\/><\/svg>\n      Budget\n      <div class=\"nav-dot\"><\/div>\n    <\/button>\n    <button class=\"nav-item\" onclick=\"toggleMore()\" id=\"more-btn\" data-page=\"more\">\n      <svg viewBox=\"0 0 20 20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\"><circle cx=\"5\" cy=\"10\" r=\"1.2\" fill=\"currentColor\" stroke=\"none\"\/><circle cx=\"10\" cy=\"10\" r=\"1.2\" fill=\"currentColor\" stroke=\"none\"\/><circle cx=\"15\" cy=\"10\" r=\"1.2\" fill=\"currentColor\" stroke=\"none\"\/><\/svg>\n      More\n      <div class=\"nav-dot\"><\/div>\n    <\/button>\n  <\/nav>\n\n  <!-- MORE MENU -->\n  <div class=\"more-overlay\" id=\"more-overlay\" onclick=\"closeMore()\"><\/div>\n  <div class=\"more-menu\" id=\"more-menu\">\n    <div class=\"more-grid\">\n      <button class=\"more-item\" onclick=\"navigateMore('monthly')\" data-page=\"monthly\">\n        <svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\"><rect x=\"3\" y=\"4\" width=\"14\" height=\"13\" rx=\"1.5\"\/><path d=\"M3 8h14M7 4V2M13 4V2\"\/><\/svg>\n        Monthly\n      <\/button>\n      <button class=\"more-item\" onclick=\"navigateMore('goals')\" data-page=\"goals\">\n        <svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\"><circle cx=\"10\" cy=\"10\" r=\"7\"\/><circle cx=\"10\" cy=\"10\" r=\"3\"\/><\/svg>\n        Goals\n      <\/button>\n      <button class=\"more-item\" onclick=\"navigateMore('gratitude')\" data-page=\"gratitude\">\n        <svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\"><path d=\"M10 17s-7-4-7-9a5 5 0 0110 0c0-4 10 5 0 9\"\/><\/svg>\n        Gratitude\n      <\/button>\n      <button class=\"more-item\" onclick=\"navigateMore('meals')\" data-page=\"meals\">\n        <svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\"><path d=\"M6 3v6a4 4 0 008 0V3M10 17v-4\"\/><\/svg>\n        Meals\n      <\/button>\n      <button class=\"more-item\" onclick=\"navigateMore('water')\" data-page=\"water\">\n        <svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\"><path d=\"M10 3C10 3 5 8.5 5 12a5 5 0 0010 0c0-3.5-5-9-5-9z\"\/><\/svg>\n        Water\n      <\/button>\n    <\/div>\n  <\/div>\n<\/div>\n\n<div class=\"toast\" id=\"toast\">Saved ✓<\/div>\n\n<script>\nconst PW_KEY = 'apex_pw_v2';\nconst SK = 'apex_data_v2';\n\nlet S = {\n  todos:[], gratitude:[], goals:[], grocery:[], income:[], expenses:[],\n  water:0, schedule:{}, meals:{}, monthly:{}, wellness:{}, daily:{}, calStickers:{},\n  calMonth: new Date().getMonth(), calYear: new Date().getFullYear(),\n};\n\nconst QUOTES = [\n  \"The secret of getting ahead is getting started.\",\n  \"Small steps every day lead to big results.\",\n  \"Progress, not perfection.\",\n  \"One day or day one — you decide.\",\n  \"Success is the sum of small efforts, repeated.\",\n  \"Discipline is choosing between what you want now and what you want most.\",\n  \"Your future is created by what you do today.\",\n];\n\n\/* ── LOCK ── *\/\nfunction hash(s) {\n  let h = 0;\n  for (let i = 0; i < s.length; i++) { h = ((h<<5)-h)+s.charCodeAt(i); h|=0; }\n  return h.toString(36);\n}\nfunction checkStrength() {\n  const pw = document.getElementById('setup-pw1').value;\n  const bars = [1,2,3,4].map(i => document.getElementById('sb'+i));\n  bars.forEach(b => b.className='strength-bar');\n  const lbl = document.getElementById('strength-label');\n  if (!pw) { lbl.textContent='Enter a password above'; return; }\n  let s=0;\n  if(pw.length>=4) s++;\n  if(pw.length>=8) s++;\n  if(\/[A-Z0-9]\/.test(pw)) s++;\n  if(\/[^A-Za-z0-9]\/.test(pw)) s++;\n  const cls=['weak','ok','good','strong'], txt=['Weak','Fair','Good','Strong'];\n  for(let i=0;i<s;i++) bars[i].classList.add(cls[Math.min(s-1,3)]);\n  lbl.textContent = s>0 ? 'Strength: '+txt[s-1] : 'Too short';\n}\nfunction finishSetup() {\n  const p1=document.getElementById('setup-pw1').value;\n  const p2=document.getElementById('setup-pw2').value;\n  const err=document.getElementById('setup-error');\n  if(p1.length<4){err.textContent='At least 4 characters required.';return;}\n  if(p1!==p2){err.textContent='Passwords do not match.';return;}\n  localStorage.setItem(PW_KEY,hash(p1));\n  unlock();\n}\nfunction tryLogin() {\n  const p=document.getElementById('login-pw').value;\n  const err=document.getElementById('login-error');\n  if(hash(p)===localStorage.getItem(PW_KEY)){unlock();}\n  else{err.textContent='Incorrect password.';document.getElementById('login-pw').value='';document.getElementById('login-pw').focus();}\n}\nfunction unlock() {\n  document.getElementById('lock-screen').classList.add('hidden');\n  document.getElementById('app').style.display='flex';\n  document.getElementById('app').style.flexDirection='column';\n  init();\n}\nfunction showReset(){showStep('step-reset');}\nfunction showLogin(){showStep('step-login');setTimeout(()=>document.getElementById('login-pw').focus(),80);}\nfunction showStep(id){document.querySelectorAll('.lock-step').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}\nfunction confirmReset(){localStorage.removeItem(PW_KEY);localStorage.removeItem(SK);location.reload();}\nfunction togglePw(id,btn){\n  const inp=document.getElementById(id);\n  const showing=inp.type==='text';\n  inp.type=showing?'password':'text';\n  if(!showing){inp.style.background='rgba(255,255,255,0.92)';inp.style.color='#1A1612';inp.style.webkitTextFillColor='#1A1612';inp.style.letterSpacing='2px';}\n  else{inp.style.background='rgba(255,255,255,0.12)';inp.style.color='#fff';inp.style.webkitTextFillColor='#fff';inp.style.letterSpacing='4px';}\n  btn.style.color=showing?'rgba(255,255,255,0.35)':'#555';\n}\nfunction initLock(){\n  if(localStorage.getItem(PW_KEY)){showStep('step-login');setTimeout(()=>document.getElementById('login-pw').focus(),80);}\n  else{setTimeout(()=>document.getElementById('setup-pw1').focus(),80);}\n}\ninitLock();\n\n\/* ── INIT ── *\/\nfunction init(){load();setDates();renderAll();}\n\nfunction setDates(){\n  const n=new Date();\n  const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];\n  const months=['January','February','March','April','May','June','July','August','September','October','November','December'];\n  const h=n.getHours();\n  document.getElementById('welcome-msg').textContent=(h<12?'Good morning':h<17?'Good afternoon':'Good evening')+'!';\n  const dateStr=days[n.getDay()]+', '+months[n.getMonth()]+' '+n.getDate();\n  document.getElementById('welcome-date').textContent=dateStr;\n  document.getElementById('topbar-date').textContent=dateStr;\n  document.getElementById('daily-quote').textContent='\"'+QUOTES[n.getDate()%QUOTES.length]+'\"';\n}\n\n\/* ── NAVIGATE ── *\/\nconst PAGE_TITLES={dashboard:'Dashboard',monthly:'Monthly Overview',schedule:'Daily Schedule',todo:'To-Do List',gratitude:'Gratitude Journal',goals:'Goal Setting',meals:'Meal Planner',budget:'Budget Tracker',water:'Water Tracker'};\nconst MAIN_NAV=['dashboard','todo','schedule','budget'];\nlet currentPage='dashboard';\n\nfunction navigate(page){\n  currentPage=page;\n  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));\n  document.getElementById('panel-'+page).classList.add('active');\n  document.getElementById('topbar-title').textContent=PAGE_TITLES[page]||page;\n  document.querySelectorAll('.nav-item[data-page]').forEach(n=>{\n    n.classList.toggle('active', n.dataset.page===page || (page==='more'&&n.dataset.page==='more'));\n  });\n  \/\/ highlight more-items\n  document.querySelectorAll('.more-item[data-page]').forEach(m=>m.classList.toggle('active',m.dataset.page===page));\n  window.scrollTo(0,0);\n  if(page==='dashboard')renderDashboard();\n  if(page==='monthly')renderCalendar();\n}\nfunction navigateMore(page){closeMore();navigate(page);}\nfunction toggleMore(){\n  const menu=document.getElementById('more-menu');\n  const overlay=document.getElementById('more-overlay');\n  const open=menu.classList.contains('open');\n  if(open){closeMore();}else{menu.classList.add('open');overlay.classList.add('open');document.getElementById('more-btn').classList.add('active');}\n}\nfunction closeMore(){\n  document.getElementById('more-menu').classList.remove('open');\n  document.getElementById('more-overlay').classList.remove('open');\n  if(!['monthly','goals','gratitude','meals','water'].includes(currentPage)) document.getElementById('more-btn').classList.remove('active');\n}\n\n\/* ── SAVE \/ LOAD ── *\/\nfunction collect(){\n  S.daily.affirmation=v('affirmation');S.daily.win=v('refl-win');S.daily.energy=v('refl-energy');\n  S.monthly.intent=v('month-intent');S.monthly.p1=v('mpri1');S.monthly.p2=v('mpri2');S.monthly.p3=v('mpri3');\n  S.wellness.sleep=v('w-sleep');S.wellness.steps=v('w-steps');S.wellness.exercise=v('w-exercise');S.wellness.mood=v('w-mood');\n  document.querySelectorAll('.time-input').forEach(i=>{S.schedule[i.dataset.h]=i.value;});\n  document.querySelectorAll('.meal-ta').forEach(i=>{S.meals[i.dataset.k]=i.value;});\n  document.querySelectorAll('.goal-inp').forEach(i=>{const idx=+i.dataset.idx,f=i.dataset.f;if(S.goals[idx])S.goals[idx][f]=i.value;});\n  document.querySelectorAll('.goal-prog').forEach(i=>{const idx=+i.dataset.idx;if(S.goals[idx])S.goals[idx].progress=+i.value;});\n  document.querySelectorAll('.grat-inp').forEach(i=>{const e=+i.dataset.e,f=i.dataset.f;if(S.gratitude[e])S.gratitude[e][f]=i.value;});\n  document.querySelectorAll('.amt-input[data-t=\"inc\"]').forEach(i=>{if(S.income[+i.dataset.i])S.income[+i.dataset.i].amount=+i.value||0;});\n  document.querySelectorAll('.amt-input[data-t=\"exp\"]').forEach(i=>{if(S.expenses[+i.dataset.i])S.expenses[+i.dataset.i].amount=+i.value||0;});\n}\nfunction saveAll(){collect();try{localStorage.setItem(SK,JSON.stringify(S));}catch(e){}showToast();}\nfunction load(){try{const d=localStorage.getItem(SK);if(d)S={...S,...JSON.parse(d)};}catch(e){}}\nfunction v(id){const e=document.getElementById(id);return e?e.value:'';}\nfunction sv(id,val){const e=document.getElementById(id);if(e&&val!=null)e.value=val||'';}\nfunction showToast(){const t=document.getElementById('toast');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000);}\n\nfunction renderAll(){\n  renderSchedule();renderTodos();renderGratitude();renderGoals();\n  renderMeals();renderGrocery();renderBudget();renderWater();renderCalendar();renderDashboard();\n  if (S.daily.affirmation) {\n    const inp = document.getElementById('affirmation');\n    const sel = document.getElementById('affirmation-select');\n    if (inp) inp.value = S.daily.affirmation;\n    if (sel) {\n      for (let opt of sel.options) {\n        if (opt.text === S.daily.affirmation) { opt.selected = true; break; }\n      }\n    }\n  }\n  sv('refl-win',S.daily.win);sv('refl-energy',S.daily.energy);\n  sv('month-intent',S.monthly.intent);sv('mpri1',S.monthly.p1);sv('mpri2',S.monthly.p2);sv('mpri3',S.monthly.p3);\n  sv('w-sleep',S.wellness.sleep);sv('w-steps',S.wellness.steps);sv('w-exercise',S.wellness.exercise);sv('w-mood',S.wellness.mood);\n}\n\n\/* ── SCHEDULE ── *\/\nfunction renderSchedule(){\n  const g=document.getElementById('schedule-grid'); if(!g)return;\n  const hours=[];\n  for(let h=5;h<=21;h++){const l=h===12?'12 PM':h<12?h+' AM':(h-12)+' PM';hours.push({h,l});}\n  g.innerHTML=hours.map(({h,l})=>{\n    const val=(S.schedule&&S.schedule[h])||'';\n    return`<div class=\"time-block ${val?'has-event':''}\">\n      <div class=\"time-label\">${l}<\/div>\n      <input class=\"time-input\" data-h=\"${h}\" value=\"${esc(val)}\" placeholder=\"Add event...\">\n      <span style=\"cursor:pointer;color:var(--text3);font-size:13px\" onclick=\"clearSlot(${h})\">✕<\/span>\n    <\/div>`;\n  }).join('');\n}\nfunction clearSlot(h){if(S.schedule)S.schedule[h]='';renderSchedule();}\n\n\/* ── TO-DO ── *\/\nlet todoFilter='All';\nconst catColor={Work:'tag-navy',Personal:'tag-gold',Health:'tag-green',Errands:'tag-red'};\nfunction addTodo(){\n  const inp=document.getElementById('todo-input'),cat=document.getElementById('todo-cat').value,text=inp.value.trim();\n  if(!text)return;\n  S.todos.push({id:Date.now(),text,cat,done:false});inp.value='';\n  renderTodos();renderDashboard();saveAll();\n}\nfunction toggleTodo(id){const t=S.todos.find(t=>t.id===id);if(t)t.done=!t.done;renderTodos();renderDashboard();saveAll();}\nfunction deleteTodo(id){S.todos=S.todos.filter(t=>t.id!==id);renderTodos();renderDashboard();saveAll();}\nfunction filterTodos(cat){\n  todoFilter=cat;\n  document.querySelectorAll('.cat-tab').forEach(t=>t.classList.toggle('active',t.textContent===cat));\n  renderTodos();\n}\nfunction renderTodos(){\n  const list=document.getElementById('todo-list');if(!list)return;\n  const filtered=todoFilter==='All'?S.todos:S.todos.filter(t=>t.cat===todoFilter);\n  if(!filtered.length){list.innerHTML='<div class=\"empty\">No tasks yet. Add one above!<\/div>';return;}\n  list.innerHTML=filtered.map(t=>`\n    <div class=\"todo-item ${t.done?'done':''}\">\n      <div class=\"todo-cb ${t.done?'checked':''}\" onclick=\"toggleTodo(${t.id})\">${t.done?'✓':''}<\/div>\n      <span class=\"todo-text\">${esc(t.text)}<\/span>\n      <span class=\"tag ${catColor[t.cat]||'tag-navy'}\">${t.cat}<\/span>\n      <button class=\"del-btn\" onclick=\"deleteTodo(${t.id})\">✕<\/button>\n    <\/div>`).join('');\n}\n\n\/* ── GRATITUDE ── *\/\nfunction addGratitude(){\n  const n=new Date();\n  S.gratitude.unshift({date:n.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'}),grateful:'',joy:'',person:''});\n  renderGratitude();saveAll();\n}\nfunction deleteGratitude(i){S.gratitude.splice(i,1);renderGratitude();saveAll();}\nfunction renderGratitude(){\n  const list=document.getElementById('grat-list');if(!list)return;\n  if(!S.gratitude.length){list.innerHTML='<div class=\"empty\">No entries yet. Add one to start your practice!<\/div>';return;}\n  list.innerHTML=S.gratitude.map((g,i)=>`\n    <div class=\"grat-entry\">\n      <div style=\"display:flex;justify-content:space-between;align-items:center;margin-bottom:12px\">\n        <div class=\"grat-date\">${g.date}<\/div>\n        <button class=\"btn btn-outline btn-sm\" onclick=\"deleteGratitude(${i})\">Delete<\/button>\n      <\/div>\n      <div class=\"field\"><div class=\"grat-label\">I'm grateful for...<\/div>\n        <input type=\"text\" class=\"grat-inp\" data-e=\"${i}\" data-f=\"grateful\" value=\"${esc(g.grateful)}\" placeholder=\"Write here...\"><\/div>\n      <div class=\"field\"><div class=\"grat-label\">A small joy today...<\/div>\n        <input type=\"text\" class=\"grat-inp\" data-e=\"${i}\" data-f=\"joy\" value=\"${esc(g.joy)}\" placeholder=\"Write here...\"><\/div>\n      <div class=\"field\"><div class=\"grat-label\">Someone I appreciate...<\/div>\n        <input type=\"text\" class=\"grat-inp\" data-e=\"${i}\" data-f=\"person\" value=\"${esc(g.person)}\" placeholder=\"Write here...\"><\/div>\n    <\/div>`).join('');\n}\n\n\/* ── GOALS ── *\/\nconst GOAL_CATS=['Career','Health','Financial','Personal Growth','Relationships','Creative'];\nfunction addGoal(){S.goals.push({title:'New goal',cat:'Career',why:'',deadline:'',progress:0});renderGoals();saveAll();}\nfunction deleteGoal(i){S.goals.splice(i,1);renderGoals();saveAll();}\nfunction renderGoals(){\n  const list=document.getElementById('goals-list');if(!list)return;\n  if(!S.goals.length){list.innerHTML='<div class=\"empty\">No goals yet. Click \"Add goal\" to start!<\/div>';return;}\n  list.innerHTML=S.goals.map((g,i)=>`\n    <div class=\"goal-card\">\n      <div style=\"display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:12px\">\n        <input class=\"goal-inp\" data-idx=\"${i}\" data-f=\"title\" value=\"${esc(g.title)}\" placeholder=\"Goal title\" style=\"font-family:'DM Serif Display',serif;font-size:17px;border:none;background:transparent;padding:0;width:100%;outline:none;color:var(--navy)\">\n        <button class=\"btn btn-outline btn-sm\" onclick=\"deleteGoal(${i})\">✕<\/button>\n      <\/div>\n      <div class=\"grid-2\" style=\"margin-bottom:10px\">\n        <div class=\"field\"><label>Category<\/label>\n          <select class=\"goal-inp\" data-idx=\"${i}\" data-f=\"cat\">${GOAL_CATS.map(c=>`<option ${g.cat===c?'selected':''}>${c}<\/option>`).join('')}<\/select><\/div>\n        <div class=\"field\"><label>Deadline<\/label>\n          <input type=\"text\" class=\"goal-inp\" data-idx=\"${i}\" data-f=\"deadline\" value=\"${esc(g.deadline)}\" placeholder=\"e.g. Dec 2025\"><\/div>\n      <\/div>\n      <div class=\"field\"><label>Why it matters<\/label>\n        <input type=\"text\" class=\"goal-inp\" data-idx=\"${i}\" data-f=\"why\" value=\"${esc(g.why)}\" placeholder=\"Your motivation...\"><\/div>\n      <div style=\"display:flex;justify-content:space-between;font-size:12px;color:var(--text3);margin-bottom:5px\"><span>Progress<\/span><span>${g.progress||0}%<\/span><\/div>\n      <div class=\"prog-wrap\"><div class=\"prog-bar navy\" style=\"width:${g.progress||0}%;background:var(--navy)\"><\/div><\/div>\n      <input type=\"range\" class=\"goal-prog\" data-idx=\"${i}\" min=\"0\" max=\"100\" value=\"${g.progress||0}\" style=\"width:100%;margin-top:8px;accent-color:var(--navy)\" oninput=\"S.goals[${i}].progress=+this.value;document.querySelector('.goal-prog[data-idx=\\\\'${i}\\\\']').previousElementSibling.firstChild.style.width=this.value+'%';this.previousElementSibling.previousElementSibling.lastChild.textContent=this.value+'%'\">\n    <\/div>`).join('');\n}\n\n\/* ── MEALS ── *\/\nconst MEAL_DAYS=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];\nconst MEAL_TYPES=['Breakfast','Lunch','Dinner','Snacks'];\nfunction renderMeals(){\n  const c=document.getElementById('meal-days');if(!c)return;\n  c.innerHTML=MEAL_DAYS.map((day,di)=>`\n    <div class=\"meal-day\">\n      <div class=\"meal-day-header ${di>=5?'weekend':''}\">${day}<\/div>\n      <div class=\"meal-slots\">\n        ${MEAL_TYPES.map(m=>{\n          const k=m+'_'+di;const val=(S.meals&&S.meals[k])||'';\n          return`<div class=\"meal-slot\"><label>${m}<\/label><textarea class=\"meal-ta\" data-k=\"${k}\" placeholder=\"...\">${esc(val)}<\/textarea><\/div>`;\n        }).join('')}\n      <\/div>\n    <\/div>`).join('');\n}\n\n\/* ── GROCERY ── *\/\nfunction addGrocery(){\n  const inp=document.getElementById('grocery-inp'),text=inp.value.trim();\n  if(!text)return;S.grocery.push({id:Date.now(),text,done:false});inp.value='';renderGrocery();saveAll();\n}\nfunction renderGrocery(){\n  const list=document.getElementById('grocery-list');if(!list)return;\n  if(!S.grocery.length){list.innerHTML='<div style=\"color:var(--text3);font-size:13px;padding:6px 0\">No items yet.<\/div>';return;}\n  list.innerHTML=S.grocery.map(g=>`\n    <div class=\"todo-item ${g.done?'done':''}\">\n      <div class=\"todo-cb ${g.done?'checked':''}\" onclick=\"toggleGrocery(${g.id})\">${g.done?'✓':''}<\/div>\n      <span class=\"todo-text\">${esc(g.text)}<\/span>\n      <button class=\"del-btn\" style=\"opacity:1\" onclick=\"S.grocery=S.grocery.filter(x=>x.id!==${g.id});renderGrocery();saveAll()\">✕<\/button>\n    <\/div>`).join('');\n}\nfunction toggleGrocery(id){const g=S.grocery.find(g=>g.id===id);if(g)g.done=!g.done;renderGrocery();saveAll();}\n\n\/* ── BUDGET ── *\/\nfunction addIncome(){\n  const n=document.getElementById('inc-name').value.trim(),a=+document.getElementById('inc-amt').value||0;\n  if(!n)return;S.income.push({name:n,amount:a});document.getElementById('inc-name').value='';document.getElementById('inc-amt').value='';\n  renderBudget();saveAll();\n}\nfunction addExpense(){\n  const n=document.getElementById('exp-name').value.trim(),a=+document.getElementById('exp-amt').value||0;\n  if(!n)return;S.expenses.push({name:n,amount:a});document.getElementById('exp-name').value='';document.getElementById('exp-amt').value='';\n  renderBudget();saveAll();\n}\nfunction renderBudget(){\n  const ir=document.getElementById('inc-rows'),er=document.getElementById('exp-rows');if(!ir||!er)return;\n  ir.innerHTML=S.income.map((r,i)=>`<tr><td>${esc(r.name)}<\/td><td style=\"text-align:right\"><input class=\"amt-input\" data-t=\"inc\" data-i=\"${i}\" type=\"number\" value=\"${r.amount}\"><\/td><td><button onclick=\"S.income.splice(${i},1);renderBudget();saveAll()\" style=\"background:none;border:none;cursor:pointer;color:var(--text3)\">✕<\/button><\/td><\/tr>`).join('')||'<tr><td colspan=\"3\" style=\"color:var(--text3);font-size:13px;padding:10px 0\">No income added yet.<\/td><\/tr>';\n  er.innerHTML=S.expenses.map((r,i)=>`<tr><td>${esc(r.name)}<\/td><td style=\"text-align:right\"><input class=\"amt-input\" data-t=\"exp\" data-i=\"${i}\" type=\"number\" value=\"${r.amount}\"><\/td><td><button onclick=\"S.expenses.splice(${i},1);renderBudget();saveAll()\" style=\"background:none;border:none;cursor:pointer;color:var(--text3)\">✕<\/button><\/td><\/tr>`).join('')||'<tr><td colspan=\"3\" style=\"color:var(--text3);font-size:13px;padding:10px 0\">No expenses added yet.<\/td><\/tr>';\n  const inc=S.income.reduce((s,r)=>s+(+r.amount||0),0);\n  const exp=S.expenses.reduce((s,r)=>s+(+r.amount||0),0);\n  document.getElementById('bud-inc').textContent='$'+inc.toFixed(0);\n  document.getElementById('bud-exp').textContent='$'+exp.toFixed(0);\n  document.getElementById('bud-bal').textContent='$'+(inc-exp).toFixed(0);\n}\n\n\/* ── WATER ── *\/\nfunction renderWater(){\n  const g=document.getElementById('water-glasses'),bar=document.getElementById('water-bar'),cnt=document.getElementById('water-count');\n  if(!g)return;\n  const w=S.water||0;\n  g.innerHTML=Array.from({length:8},(_,i)=>`\n    <div class=\"glass ${i<w?'filled':''}\" onclick=\"setWater(${i+1})\">\n      <div class=\"glass-fill\" style=\"height:${i<w?'100%':'0'}\"><\/div>\n      <div class=\"glass-num\">${i+1}<\/div>\n    <\/div>`).join('');\n  if(bar)bar.style.width=Math.min(100,(w\/8)*100)+'%';\n  if(cnt)cnt.textContent=w;\n  const dw=document.getElementById('dash-water');if(dw)dw.textContent=w;\n}\nfunction setWater(n){S.water=n;renderWater();saveAll();}\nfunction addWater(){if(S.water<8){S.water++;renderWater();saveAll();}}\nfunction removeWater(){if(S.water>0){S.water--;renderWater();saveAll();}}\nfunction resetWater(){S.water=0;renderWater();saveAll();}\n\n\/* ── CALENDAR ── *\/\nconst MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];\nfunction changeMonth(d){\n  S.calMonth+=d;\n  if(S.calMonth>11){S.calMonth=0;S.calYear++;}\n  if(S.calMonth<0){S.calMonth=11;S.calYear--;}\n  renderCalendar();\n}\nfunction renderCalendar(){\n  const grid=document.getElementById('cal-grid'),title=document.getElementById('cal-title');if(!grid)return;\n  if(title)title.textContent=MONTHS[S.calMonth]+' '+S.calYear;\n  const now=new Date(),fd=new Date(S.calYear,S.calMonth,1).getDay(),dim=new Date(S.calYear,S.calMonth+1,0).getDate();\n  const offset=(fd+6)%7;\n  const days=['M','T','W','T','F','S','S'];\n  let html=days.map(d=>`<div class=\"cal-hdr\">${d}<\/div>`).join('');\n  for(let i=0;i<offset;i++)html+='<div class=\"cal-day other-month\"><\/div>';\n  for(let d=1;d<=dim;d++){\n    const isToday=d===now.getDate()&&S.calMonth===now.getMonth()&&S.calYear===now.getFullYear();\n    const dow=(offset+d-1)%7;\n    const dayKey=`${S.calYear}-${S.calMonth}-${d}`;\n    const dayStickers=(S.calStickers&&S.calStickers[dayKey])||[];\n    const stickersHtml=dayStickers.length?`<div class=\"cal-stickers\">${dayStickers.map(s=>`<span class=\"cal-sticker\">${s}<\/span>`).join('')}<\/div>`:'';\n    html+=`<div class=\"cal-day ${isToday?'today':''} ${dow>=5&&!isToday?'weekend':''}\" onclick=\"openSticker('${dayKey}')\" title=\"Add sticker\">\n      <div class=\"cal-day-num\">${d}<\/div>\n      ${stickersHtml}\n    <\/div>`;\n  }\n  grid.innerHTML=html;\n}\n\n\/* ── DASHBOARD ── *\/\nfunction renderDashboard(){\n  const td=document.getElementById('dash-todos');\n  if(td){\n    const top=S.todos.filter(t=>!t.done).slice(0,4);\n    td.innerHTML=top.length?top.map(t=>`\n      <div class=\"todo-item\">\n        <div class=\"todo-cb\" onclick=\"toggleTodo(${t.id});renderDashboard()\"><\/div>\n        <span class=\"todo-text\">${esc(t.text)}<\/span>\n        <span class=\"tag ${catColor[t.cat]||'tag-navy'}\">${t.cat}<\/span>\n      <\/div>`).join(''):'<div class=\"empty\" style=\"padding:16px 0\">No pending tasks.<\/div>';\n  }\n  const sd=document.getElementById('dash-schedule');\n  if(sd&&S.schedule){\n    const items=Object.entries(S.schedule).filter(([,v])=>v).slice(0,4);\n    sd.innerHTML=items.length?items.map(([h,v])=>{\n      const l=h==12?'12 PM':h<12?h+' AM':(h-12)+' PM';\n      return`<div style=\"display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)\"><span style=\"font-size:12px;font-weight:600;color:var(--text3);min-width:48px\">${l}<\/span><span style=\"font-size:14px\">${esc(v)}<\/span><\/div>`;\n    }).join(''):'<div class=\"empty\" style=\"padding:16px 0\">No events today.<\/div>';\n  }\n  const dt=document.getElementById('dash-tasks');if(dt)dt.textContent=S.todos.filter(t=>!t.done).length;\n  const dg=document.getElementById('dash-goals');if(dg)dg.textContent=S.goals.length;\n  renderWater();\n}\n\nfunction esc(s){if(!s)return'';return String(s).replace(\/&\/g,'&amp;').replace(\/<\/g,'&lt;').replace(\/>\/g,'&gt;').replace(\/\"\/g,'&quot;');}\n\n\n\/* ── STICKER PICKER ── *\/\nconst STICKER_SETS = {\n  'Mood': ['😊','😍','🥰','😎','😴','😤','🥳','😢','😂','🤩','😌','🔥','✨','💫','⭐','🌟'],\n  'Nature': ['🌸','🌺','🌻','🌹','🍀','🌿','🍃','🌈','☀️','🌙','⛅','🌊','🦋','🐝','🌵','🍁'],\n  'Events': ['🎉','🎂','🎁','🎈','🏖️','✈️','🎓','💍','🏆','🎯','📅','📌','🔔','💌','🎵','🎨'],\n  'Health': ['💪','🏃','🧘','🥗','💊','🏋️','🚴','🧠','❤️','💤','🥤','🌅','🍎','🥦','🧘','🏊'],\n  'Work': ['💼','📝','💡','🖥️','📊','✅','⏰','☕','📚','🎯','🔑','💰','📱','🤝','📈','🗓️'],\n  'Fun': ['🎮','🎬','🎤','🍕','🍦','🌮','🎸','⚽','🏀','🎲','🎠','🎡','🎢','🃏','🎳','🛹'],\n};\n\nlet pickerDayKey = null;\nlet pickerCategory = 'Mood';\n\nfunction openSticker(dayKey) {\n  pickerDayKey = dayKey;\n  const parts = dayKey.split('-');\n  const d = new Date(+parts[0], +parts[1], +parts[2]);\n  document.getElementById('sticker-day-label').textContent =\n    d.toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric'});\n  renderStickerTabs();\n  renderStickerGrid();\n  document.getElementById('sticker-overlay').classList.add('open');\n  document.getElementById('sticker-panel').classList.add('open');\n}\n\nfunction closeSticker() {\n  document.getElementById('sticker-overlay').classList.remove('open');\n  document.getElementById('sticker-panel').classList.remove('open');\n  pickerDayKey = null;\n}\n\nfunction renderStickerTabs() {\n  const tabs = document.getElementById('sticker-tabs');\n  tabs.innerHTML = Object.keys(STICKER_SETS).map(cat =>\n    `<button class=\"sticker-tab ${cat===pickerCategory?'active':''}\" onclick=\"switchStickerCat('${cat}')\">${cat}<\/button>`\n  ).join('');\n}\n\nfunction switchStickerCat(cat) {\n  pickerCategory = cat;\n  renderStickerTabs();\n  renderStickerGrid();\n}\n\nfunction renderStickerGrid() {\n  const grid = document.getElementById('sticker-grid');\n  const stickers = STICKER_SETS[pickerCategory] || [];\n  const current = (S.calStickers && S.calStickers[pickerDayKey]) || [];\n  grid.innerHTML = stickers.map(s =>\n    `<button class=\"sticker-btn ${current.includes(s)?'selected-sticker':''}\" onclick=\"toggleSticker('${s}')\">${s}<\/button>`\n  ).join('');\n}\n\nfunction toggleSticker(emoji) {\n  if (!S.calStickers) S.calStickers = {};\n  if (!S.calStickers[pickerDayKey]) S.calStickers[pickerDayKey] = [];\n  const arr = S.calStickers[pickerDayKey];\n  const idx = arr.indexOf(emoji);\n  if (idx > -1) { arr.splice(idx, 1); }\n  else if (arr.length < 4) { arr.push(emoji); }\n  renderStickerGrid();\n  renderCalendar();\n  saveAll();\n}\n\nfunction clearDayStickers() {\n  if (!S.calStickers) return;\n  S.calStickers[pickerDayKey] = [];\n  renderStickerGrid();\n  renderCalendar();\n  saveAll();\n}\n\nfunction pickAffirmation(val) {\n  if (val && val !== '') {\n    document.getElementById('affirmation').value = val;\n    saveAll();\n  }\n}\n\ndocument.addEventListener('input',()=>{clearTimeout(window._t);window._t=setTimeout(saveAll,1800);});\n<\/script>\n<\/body>\n<\/html>\n",
-  "stderr" : ""
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Apex Planner</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy: #0F1F3D;
+  --navy2: #1B2A4A;
+  --gold: #C9943A;
+  --gold-light: #F0C070;
+  --cream: #FAF8F4;
+  --surface: #FFFFFF;
+  --surface2: #F4F2EE;
+  --border: #E2DDD6;
+  --text: #1A1612;
+  --text2: #5A5248;
+  --text3: #9A9088;
+  --success: #2D7A4F;
+  --danger: #C0392B;
+  --radius: 14px;
+  --radius-sm: 9px;
+  --nav-h: 68px;
+  --top-h: 56px;
 }
+
+- { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+body {
+font-family: ‘DM Sans’, sans-serif;
+background: var(–cream);
+color: var(–text);
+min-height: 100vh;
+font-size: 15px;
+line-height: 1.6;
+overscroll-behavior: none;
+}
+
+/* ── LOCK SCREEN ── */
+#lock-screen {
+position: fixed; inset: 0;
+background: var(–navy);
+display: flex; align-items: center; justify-content: center;
+z-index: 999;
+flex-direction: column;
+gap: 20px;
+}
+#lock-screen.hidden { display: none; }
+.lock-card {
+background: var(–navy2);
+border: 1px solid rgba(201,148,58,0.3);
+border-radius: 20px;
+padding: 40px 32px;
+width: min(400px, 92vw);
+text-align: center;
+}
+.lock-logo { font-family: ‘DM Serif Display’, serif; color: var(–gold-light); font-size: 28px; margin-bottom: 4px; }
+.lock-sub { color: rgba(255,255,255,0.38); font-size: 12px; margin-bottom: 28px; text-transform: uppercase; letter-spacing: 1.5px; }
+.lock-step { display: none; }
+.lock-step.active { display: block; }
+.lock-step-label { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: var(–gold); margin-bottom: 18px; font-weight: 600; }
+.lock-input-wrap { position: relative; margin-bottom: 10px; }
+.lock-input {
+width: 100%; background: rgba(255,255,255,0.12);
+border: 1px solid rgba(255,255,255,0.2); border-radius: var(–radius-sm);
+color: #fff; -webkit-text-fill-color: #fff; caret-color: var(–gold-light);
+padding: 13px 44px 13px 18px; font-size: 16px; font-family: inherit;
+text-align: center; letter-spacing: 4px; outline: none; transition: border-color 0.2s, background 0.2s;
+}
+.lock-input:focus { border-color: var(–gold); background: rgba(255,255,255,0.17); }
+.lock-input::placeholder { color: rgba(255,255,255,0.3); -webkit-text-fill-color: rgba(255,255,255,0.3); letter-spacing: 1px; font-size: 13px; }
+.lock-input:-webkit-autofill, .lock-input:-webkit-autofill:focus {
+-webkit-box-shadow: 0 0 0 1000px #1B2A4A inset; -webkit-text-fill-color: #fff;
+}
+.show-pw-btn {
+position: absolute; right: 13px; top: 50%; transform: translateY(-50%);
+background: none; border: none; cursor: pointer; color: rgba(255,255,255,0.35);
+transition: color 0.2s; line-height: 0; padding: 4px;
+}
+.show-pw-btn:hover { color: rgba(255,255,255,0.75); }
+.lock-strength { display: flex; gap: 4px; margin: 8px 0 4px; }
+.strength-bar { height: 3px; flex: 1; border-radius: 2px; background: rgba(255,255,255,0.1); transition: background 0.3s; }
+.strength-bar.weak { background: #e74c3c; } .strength-bar.ok { background: #e67e22; }
+.strength-bar.good { background: #f1c40f; } .strength-bar.strong { background: #2ecc71; }
+.strength-lbl { font-size: 11px; color: rgba(255,255,255,0.3); text-align: left; margin-bottom: 12px; }
+.lock-hint { color: rgba(255,255,255,0.28); font-size: 12px; margin-bottom: 18px; line-height: 1.6; }
+.lock-btn {
+width: 100%; background: var(–gold); color: white; border: none;
+border-radius: var(–radius-sm); padding: 13px; font-size: 15px;
+font-weight: 600; font-family: inherit; cursor: pointer; transition: background 0.2s;
+}
+.lock-btn:hover { background: #b8832a; }
+.lock-btn-ghost {
+width: 100%; background: transparent; color: rgba(255,255,255,0.38);
+border: 1px solid rgba(255,255,255,0.1); border-radius: var(–radius-sm);
+padding: 10px; font-size: 13px; font-family: inherit; cursor: pointer; margin-top: 10px; transition: all 0.2s;
+}
+.lock-btn-ghost:hover { color: rgba(255,255,255,0.65); border-color: rgba(255,255,255,0.22); }
+.lock-error { color: #ff7675; font-size: 13px; margin-top: 8px; min-height: 18px; }
+
+/* ── LAYOUT ── */
+#app { display: flex; flex-direction: column; min-height: 100vh; }
+
+/* ── TOP BAR ── */
+.topbar {
+height: var(–top-h); background: var(–surface);
+border-bottom: 1px solid var(–border);
+display: flex; align-items: center; justify-content: space-between;
+padding: 0 20px; position: sticky; top: 0; z-index: 50;
+}
+.topbar-logo { font-family: ‘DM Serif Display’, serif; font-size: 20px; color: var(–navy); }
+.topbar-title { font-family: ‘DM Serif Display’, serif; font-size: 18px; color: var(–navy); }
+.topbar-date { font-size: 12px; color: var(–text3); }
+.save-btn {
+background: var(–navy); color: white; border: none; border-radius: var(–radius-sm);
+padding: 7px 16px; font-size: 13px; font-weight: 500; font-family: inherit; cursor: pointer;
+}
+
+/* ── CONTENT ── */
+.content {
+flex: 1; padding: 20px 16px;
+padding-bottom: calc(var(–nav-h) + 16px);
+max-width: 680px; margin: 0 auto; width: 100%;
+}
+
+/* ── PANELS ── */
+.panel { display: none; animation: fadeIn 0.18s ease; }
+.panel.active { display: block; }
+@keyframes fadeIn { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:translateY(0); } }
+
+/* ── BOTTOM NAV ── */
+.bottom-nav {
+position: fixed; bottom: 0; left: 0; right: 0;
+height: var(–nav-h);
+background: var(–surface);
+border-top: 1px solid var(–border);
+display: flex; align-items: stretch;
+z-index: 50;
+padding-bottom: env(safe-area-inset-bottom);
+}
+.nav-item {
+flex: 1; display: flex; flex-direction: column; align-items: center;
+justify-content: center; gap: 3px; cursor: pointer;
+color: var(–text3); font-size: 10px; font-weight: 500;
+transition: color 0.15s; padding: 8px 4px; border: none; background: none;
+font-family: inherit;
+}
+.nav-item.active { color: var(–navy); }
+.nav-item svg { width: 22px; height: 22px; }
+.nav-dot {
+width: 4px; height: 4px; border-radius: 50%;
+background: var(–gold); margin-top: 1px;
+opacity: 0; transition: opacity 0.15s;
+}
+.nav-item.active .nav-dot { opacity: 1; }
+
+/* ── MORE MENU ── */
+.more-menu {
+position: fixed; bottom: calc(var(–nav-h) + 8px); left: 0; right: 0;
+background: var(–surface); border-top: 1px solid var(–border);
+border-radius: 20px 20px 0 0; padding: 16px; z-index: 49;
+display: none; box-shadow: 0 -4px 24px rgba(0,0,0,0.1);
+}
+.more-menu.open { display: block; }
+.more-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.more-item {
+display: flex; flex-direction: column; align-items: center; gap: 6px;
+padding: 14px 8px; border-radius: var(–radius-sm); cursor: pointer;
+background: var(–surface2); border: 1px solid var(–border);
+font-size: 11px; font-weight: 500; color: var(–text2);
+transition: all 0.15s; font-family: inherit;
+}
+.more-item.active { background: rgba(15,31,61,0.07); color: var(–navy); border-color: var(–navy); }
+.more-item svg { width: 20px; height: 20px; }
+.more-overlay { position: fixed; inset: 0; z-index: 48; display: none; }
+.more-overlay.open { display: block; }
+
+/* ── CARDS ── */
+.card { background: var(–surface); border: 1px solid var(–border); border-radius: var(–radius); padding: 20px; margin-bottom: 16px; }
+.card-title { font-family: ‘DM Serif Display’, serif; font-size: 16px; color: var(–navy); margin-bottom: 14px; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+/* ── STAT BOXES ── */
+.stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+.stat-box { background: var(–surface); border: 1px solid var(–border); border-radius: var(–radius); padding: 16px; }
+.stat-val { font-family: ‘DM Serif Display’, serif; font-size: 28px; color: var(–navy); line-height: 1; }
+.stat-label { font-size: 11px; color: var(–text3); text-transform: uppercase; letter-spacing: 0.8px; margin-top: 3px; }
+
+/* ── FORM ── */
+input[type=text], input[type=number], textarea, select {
+width: 100%; background: var(–surface2); border: 1px solid var(–border);
+border-radius: var(–radius-sm); padding: 10px 13px; font-family: inherit;
+font-size: 14px; color: var(–text); outline: none; transition: border-color 0.15s;
+}
+input:focus, textarea:focus, select:focus { border-color: var(–gold); background: white; }
+textarea { resize: vertical; min-height: 72px; }
+label { font-size: 12px; font-weight: 500; color: var(–text2); display: block; margin-bottom: 4px; }
+.field { margin-bottom: 12px; }
+
+/* ── BUTTONS ── */
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 15px; border-radius: var(–radius-sm); font-family: inherit; font-size: 13px; font-weight: 500; cursor: pointer; border: none; transition: all 0.15s; }
+.btn-primary { background: var(–navy); color: white; }
+.btn-outline { background: transparent; color: var(–text2); border: 1px solid var(–border); }
+.btn-gold { background: var(–gold); color: white; }
+.btn-sm { padding: 5px 11px; font-size: 12px; }
+.btn-danger { background: transparent; color: var(–danger); border: 1px solid rgba(192,57,43,0.2); }
+
+/* ── TAGS ── */
+.tag { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 100px; font-size: 11px; font-weight: 500; }
+.tag-gold { background: rgba(201,148,58,0.12); color: #9A6B1A; }
+.tag-navy { background: rgba(15,31,61,0.08); color: var(–navy); }
+.tag-green { background: rgba(45,122,79,0.1); color: var(–success); }
+.tag-red { background: rgba(192,57,43,0.1); color: var(–danger); }
+
+/* ── PROGRESS ── */
+.prog-wrap { background: var(–surface2); border-radius: 100px; height: 7px; overflow: hidden; }
+.prog-bar { height: 100%; border-radius: 100px; background: var(–gold); transition: width 0.4s; }
+.prog-bar.green { background: var(–success); }
+
+/* ── DASHBOARD ── */
+.welcome-band {
+background: var(–navy); border-radius: var(–radius); padding: 22px 20px; margin-bottom: 16px;
+}
+.welcome-band h2 { font-family: ‘DM Serif Display’, serif; color: white; font-size: 22px; }
+.welcome-band p { color: rgba(255,255,255,0.45); font-size: 13px; margin-top: 3px; }
+.welcome-quote { color: var(–gold-light); font-style: italic; font-size: 13px; margin-top: 12px; font-family: ‘DM Serif Display’, serif; }
+
+/* ── TO-DO ── */
+.todo-add { display: flex; gap: 8px; margin-bottom: 14px; }
+.todo-add input { flex: 1; }
+.todo-item { display: flex; align-items: center; gap: 10px; padding: 11px 13px; background: var(–surface2); border-radius: var(–radius-sm); margin-bottom: 6px; border: 1px solid transparent; transition: all 0.15s; }
+.todo-item:hover { border-color: var(–border); background: white; }
+.todo-item.done { opacity: 0.45; }
+.todo-cb { width: 20px; height: 20px; border: 2px solid var(–border); border-radius: 50%; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: white; transition: all 0.15s; }
+.todo-cb.checked { background: var(–success); border-color: var(–success); color: white; font-size: 11px; font-weight: 700; }
+.todo-text { flex: 1; font-size: 14px; }
+.todo-item.done .todo-text { text-decoration: line-through; }
+.cat-tabs { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+.cat-tab { padding: 5px 13px; border-radius: 100px; font-size: 12px; cursor: pointer; border: 1px solid var(–border); background: white; color: var(–text2); font-family: inherit; transition: all 0.15s; }
+.cat-tab.active { background: var(–navy); color: white; border-color: var(–navy); }
+.del-btn { background: none; border: none; cursor: pointer; color: var(–text3); padding: 3px; opacity: 0; font-size: 14px; }
+.todo-item:hover .del-btn { opacity: 1; }
+
+/* ── SCHEDULE ── */
+.time-block { display: grid; grid-template-columns: 64px 1fr 24px; gap: 10px; align-items: center; padding: 8px 10px; border-radius: var(–radius-sm); background: var(–surface2); margin-bottom: 3px; border: 1px solid transparent; transition: all 0.15s; }
+.time-block:hover { border-color: var(–border); background: white; }
+.time-block.has-event { background: rgba(201,148,58,0.06); border-color: rgba(201,148,58,0.2); }
+.time-label { font-size: 11px; font-weight: 600; color: var(–text3); }
+.time-input { border: none !important; background: transparent !important; padding: 3px 0 !important; font-size: 14px; }
+
+/* ── GRATITUDE ── */
+.grat-entry { background: var(–surface2); border-radius: var(–radius); padding: 18px; margin-bottom: 12px; border-left: 3px solid var(–gold); }
+.grat-date { font-size: 12px; color: var(–text3); font-weight: 500; margin-bottom: 12px; }
+.grat-label { font-size: 10px; font-weight: 600; color: var(–gold); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px; }
+
+/* ── GOALS ── */
+.goal-card { background: var(–surface); border: 1px solid var(–border); border-radius: var(–radius); padding: 18px; margin-bottom: 12px; }
+
+/* ── MEALS ── */
+.meal-day { background: var(–surface); border: 1px solid var(–border); border-radius: var(–radius); margin-bottom: 10px; overflow: hidden; }
+.meal-day-header { background: var(–navy); padding: 10px 16px; font-size: 13px; font-weight: 600; color: white; display: flex; justify-content: space-between; align-items: center; }
+.meal-day-header.weekend { background: var(–gold); }
+.meal-slots { padding: 12px 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.meal-slot label { font-size: 11px; }
+.meal-slot textarea { min-height: 52px; font-size: 13px; }
+
+/* ── BUDGET ── */
+.budget-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+.bud-stat { background: var(–surface); border: 1px solid var(–border); border-radius: var(–radius); padding: 16px; border-top: 3px solid var(–border); }
+.bud-stat.income { border-top-color: var(–success); }
+.bud-stat.expense { border-top-color: var(–danger); }
+.bud-stat.balance { border-top-color: var(–gold); }
+.bud-val { font-family: ‘DM Serif Display’, serif; font-size: 24px; color: var(–navy); }
+.bud-lbl { font-size: 11px; color: var(–text3); text-transform: uppercase; letter-spacing: 0.8px; margin-top: 2px; }
+.bud-table { width: 100%; border-collapse: collapse; }
+.bud-table th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: var(–text3); padding: 6px 10px; border-bottom: 2px solid var(–border); }
+.bud-table td { padding: 9px 10px; border-bottom: 1px solid var(–border); font-size: 14px; }
+.bud-table tr:last-child td { border-bottom: none; }
+.amt-input { border: none !important; background: transparent !important; padding: 0 !important; font-size: 14px; text-align: right; width: 90px; font-family: ‘DM Sans’, sans-serif; }
+.add-row { display: flex; gap: 8px; margin-top: 12px; }
+.add-row input { flex: 1; }
+
+/* ── WATER ── */
+.water-big { font-family: ‘DM Serif Display’, serif; font-size: 52px; color: var(–navy); line-height: 1; text-align: center; }
+.water-sub { font-size: 13px; color: var(–text3); text-align: center; margin-bottom: 20px; }
+.water-glasses { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin: 20px 0; }
+.glass { width: 48px; height: 62px; border: 2px solid var(–border); border-radius: 4px 4px 10px 10px; cursor: pointer; position: relative; overflow: hidden; background: white; transition: border-color 0.2s; }
+.glass.filled { border-color: #2980B9; }
+.glass-fill { position: absolute; bottom: 0; left: 0; right: 0; background: #2980B9; transition: height 0.35s ease; border-radius: 0 0 8px 8px; }
+.glass-num { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(–text3); z-index: 1; }
+.glass.filled .glass-num { color: white; }
+.water-btns { display: flex; gap: 10px; justify-content: center; margin-top: 16px; }
+
+/* ── MONTHLY ── */
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+.cal-hdr { text-align: center; font-size: 10px; font-weight: 600; color: var(–text3); text-transform: uppercase; padding: 6px 0; }
+.cal-day { aspect-ratio: 1; border: 1px solid var(–border); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; background: white; cursor: pointer; transition: all 0.15s; position: relative; }
+.cal-day:hover { border-color: var(–gold); }
+.cal-day.today { background: var(–navy); color: white; border-color: var(–navy); }
+.cal-day.other-month { opacity: 0.25; }
+.cal-day.weekend:not(.today) { background: var(–surface2); }
+
+/* ── TOAST ── */
+.toast { position: fixed; bottom: calc(var(–nav-h) + 12px); left: 50%; transform: translateX(-50%) translateY(10px); background: var(–success); color: white; padding: 9px 20px; border-radius: 100px; font-size: 13px; font-weight: 500; opacity: 0; transition: all 0.3s; z-index: 200; pointer-events: none; white-space: nowrap; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+.divider { border: none; border-top: 1px solid var(–border); margin: 14px 0; }
+.empty { text-align: center; color: var(–text3); font-size: 14px; padding: 32px 0; }
+.section-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.section-row h2 { font-family: ‘DM Serif Display’, serif; font-size: 20px; color: var(–navy); }
+
+/* ── STICKER PICKER ── */
+.sticker-overlay { position: fixed; inset: 0; z-index: 200; display: none; }
+.sticker-overlay.open { display: block; }
+.sticker-panel {
+position: fixed; bottom: calc(var(–nav-h) + 10px); left: 50%;
+transform: translateX(-50%);
+background: var(–surface); border: 1px solid var(–border);
+border-radius: 20px; padding: 16px; z-index: 201;
+box-shadow: 0 -4px 32px rgba(0,0,0,0.13);
+width: min(360px, 94vw);
+display: none;
+}
+.sticker-panel.open { display: block; }
+.sticker-panel-title {
+font-size: 12px; font-weight: 600; color: var(–text3);
+text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;
+display: flex; justify-content: space-between; align-items: center;
+}
+.sticker-close { background: none; border: none; cursor: pointer; color: var(–text3); font-size: 18px; line-height: 1; padding: 0; }
+.sticker-tabs { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+.sticker-tab { padding: 4px 12px; border-radius: 100px; font-size: 12px; cursor: pointer; border: 1px solid var(–border); background: white; color: var(–text2); font-family: inherit; transition: all 0.15s; }
+.sticker-tab.active { background: var(–navy); color: white; border-color: var(–navy); }
+.sticker-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; max-height: 180px; overflow-y: auto; }
+.sticker-btn { font-size: 22px; padding: 6px; border: none; background: none; cursor: pointer; border-radius: 8px; transition: background 0.15s; line-height: 1; }
+.sticker-btn:hover { background: var(–surface2); }
+.sticker-btn.selected-sticker { background: rgba(201,148,58,0.15); outline: 2px solid var(–gold); }
+.sticker-actions { display: flex; gap: 8px; margin-top: 12px; }
+.cal-day { cursor: pointer; flex-direction: column; align-items: center; justify-content: flex-start; padding: 4px 2px; min-height: 44px; }
+.cal-day-num { font-size: 12px; font-weight: 500; line-height: 1.2; }
+.cal-stickers { display: flex; flex-wrap: wrap; gap: 1px; justify-content: center; margin-top: 2px; line-height: 1; }
+.cal-sticker { font-size: 13px; line-height: 1; }
+
+/* ── AFFIRMATION SELECT ── */
+#affirmation-select {
+width: 100%;
+border: 1px solid var(–border);
+border-radius: var(–radius-sm);
+background: var(–surface2);
+font-family: inherit;
+font-size: 13px;
+color: var(–text);
+padding: 4px 6px;
+outline: none;
+overflow-y: auto;
+cursor: pointer;
+}
+#affirmation-select:focus { border-color: var(–gold); background: white; }
+#affirmation-select option { padding: 6px 8px; line-height: 1.6; }
+#affirmation-select optgroup { font-size: 11px; font-weight: 700; color: var(–text3); }
+</style>
+
+</head>
+<body>
+
+<!-- LOCK -->
+
+<div id="lock-screen">
+  <div class="lock-card">
+    <div class="lock-logo">Apex Planner</div>
+    <div class="lock-sub">Professional Edition</div>
+
+```
+<div class="lock-step active" id="step-setup">
+  <div class="lock-step-label">Create your password</div>
+  <div class="lock-input-wrap">
+    <input type="password" class="lock-input" id="setup-pw1" placeholder="Choose a password" autocomplete="new-password" oninput="checkStrength()">
+    <button type="button" class="show-pw-btn" onclick="togglePw('setup-pw1',this)">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 10s3-6 8-6 8 6 8 6-3 6-8 6-8-6-8-6z"/><circle cx="10" cy="10" r="2.5"/></svg>
+    </button>
+  </div>
+  <div class="lock-input-wrap">
+    <input type="password" class="lock-input" id="setup-pw2" placeholder="Confirm password" autocomplete="new-password" onkeydown="if(event.key==='Enter')finishSetup()">
+    <button type="button" class="show-pw-btn" onclick="togglePw('setup-pw2',this)">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 10s3-6 8-6 8 6 8 6-3 6-8 6-8-6-8-6z"/><circle cx="10" cy="10" r="2.5"/></svg>
+    </button>
+  </div>
+  <div class="lock-strength"><div class="strength-bar" id="sb1"></div><div class="strength-bar" id="sb2"></div><div class="strength-bar" id="sb3"></div><div class="strength-bar" id="sb4"></div></div>
+  <div class="strength-lbl" id="strength-label">Enter a password above</div>
+  <div class="lock-hint">Saved only on your device. You'll enter this each time you open your planner.</div>
+  <button class="lock-btn" onclick="finishSetup()">Create password &amp; open planner</button>
+  <div class="lock-error" id="setup-error"></div>
+</div>
+
+<div class="lock-step" id="step-login">
+  <div class="lock-step-label">Welcome back</div>
+  <div class="lock-input-wrap">
+    <input type="password" class="lock-input" id="login-pw" placeholder="Enter your password" autocomplete="current-password" onkeydown="if(event.key==='Enter')tryLogin()">
+    <button type="button" class="show-pw-btn" onclick="togglePw('login-pw',this)">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 10s3-6 8-6 8 6 8 6-3 6-8 6-8-6-8-6z"/><circle cx="10" cy="10" r="2.5"/></svg>
+    </button>
+  </div>
+  <button class="lock-btn" onclick="tryLogin()">Unlock my planner</button>
+  <div class="lock-error" id="login-error"></div>
+  <button class="lock-btn-ghost" onclick="showReset()">Forgot password? Reset planner</button>
+</div>
+
+<div class="lock-step" id="step-reset">
+  <div class="lock-step-label" style="color:#ff7675">Reset planner</div>
+  <div class="lock-hint" style="color:rgba(255,130,120,0.85);margin-bottom:18px">This permanently erases all data and lets you set a new password. Cannot be undone.</div>
+  <button class="lock-btn" style="background:#c0392b" onclick="confirmReset()">Yes, erase &amp; reset</button>
+  <button class="lock-btn-ghost" onclick="showLogin()">Cancel</button>
+</div>
+```
+
+  </div>
+</div>
+
+<div id="app" style="display:none">
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div>
+      <div class="topbar-title" id="topbar-title">Dashboard</div>
+      <div class="topbar-date" id="topbar-date"></div>
+    </div>
+    <button class="save-btn" onclick="saveAll()">Save</button>
+  </div>
+
+  <!-- CONTENT -->
+
+  <div class="content">
+
+```
+<!-- DASHBOARD -->
+<div class="panel active" id="panel-dashboard">
+  <div class="welcome-band">
+    <h2 id="welcome-msg">Good morning!</h2>
+    <p id="welcome-date"></p>
+    <div class="welcome-quote" id="daily-quote"></div>
+  </div>
+  <div class="stats-row">
+    <div class="stat-box"><div class="stat-val" id="dash-tasks">0</div><div class="stat-label">Tasks left</div></div>
+    <div class="stat-box"><div class="stat-val" id="dash-water">0</div><div class="stat-label">Glasses today</div></div>
+    <div class="stat-box"><div class="stat-val" id="dash-goals">0</div><div class="stat-label">Active goals</div></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Today's top tasks</div>
+    <div id="dash-todos"></div>
+    <button class="btn btn-outline" style="width:100%;margin-top:10px" onclick="navigate('todo')">Open to-do list →</button>
+  </div>
+  <div class="card">
+    <div class="card-title">Today's schedule</div>
+    <div id="dash-schedule"></div>
+    <button class="btn btn-outline" style="width:100%;margin-top:10px" onclick="navigate('schedule')">Open schedule →</button>
+  </div>
+</div>
+
+<!-- MONTHLY -->
+<div class="panel" id="panel-monthly">
+  <div class="section-row">
+    <h2 id="cal-title">January</h2>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-outline btn-sm" onclick="changeMonth(-1)">← Prev</button>
+      <button class="btn btn-outline btn-sm" onclick="changeMonth(1)">Next →</button>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:14px">
+    <div class="cal-grid" id="cal-grid"></div>
+  </div>
+  <div class="card">
+    <div class="field"><label>Month intentions</label><textarea id="month-intent" placeholder="What do you want to focus on this month?"></textarea></div>
+    <div class="field"><label>Priority 1</label><input type="text" id="mpri1" placeholder="Top priority this month"></div>
+    <div class="field"><label>Priority 2</label><input type="text" id="mpri2" placeholder="Second priority"></div>
+    <div class="field"><label>Priority 3</label><input type="text" id="mpri3" placeholder="Third priority"></div>
+  </div>
+</div>
+
+<!-- SCHEDULE -->
+<div class="panel" id="panel-schedule">
+  <div class="section-row"><h2>Daily Schedule</h2></div>
+  <div class="card" style="margin-bottom:14px">
+    <div class="field">
+      <label>Today's affirmation</label>
+      <div style="display:flex;gap:8px;align-items:flex-start">
+        <div style="flex:1;display:flex;flex-direction:column;gap:6px">
+          <select id="affirmation-select" onchange="pickAffirmation(this.value)"
+            style="max-height:110px;overflow-y:auto" size="5">
+            <option value="" disabled>— Pick an affirmation —</option>
+            <optgroup label="✨ Confidence">
+              <option>I am capable of achieving anything I set my mind to.</option>
+              <option>I believe in my strength and my ability to grow.</option>
+              <option>I am worthy of success and everything good in life.</option>
+              <option>I trust myself to make the right decisions.</option>
+              <option>I am becoming the best version of myself every day.</option>
+              <option>I radiate confidence, certainty, and positivity.</option>
+            </optgroup>
+            <optgroup label="🧠 Mindset">
+              <option>Today I choose progress over perfection.</option>
+              <option>Every challenge I face is an opportunity to grow.</option>
+              <option>I am in charge of how I feel and today I choose happiness.</option>
+              <option>My mind is clear, focused, and ready for today.</option>
+              <option>I release what I cannot control and focus on what I can.</option>
+              <option>Small steps every day lead to big results.</option>
+            </optgroup>
+            <optgroup label="🌟 Abundance">
+              <option>I attract positivity, opportunity, and abundance.</option>
+              <option>I am grateful for everything I have and excited for what's coming.</option>
+              <option>Good things are always happening in my life.</option>
+              <option>I deserve joy, love, success, and fulfillment.</option>
+              <option>I am open to receiving all the wonderful things life has to offer.</option>
+            </optgroup>
+            <optgroup label="💪 Health &amp; Energy">
+              <option>I am healthy, energized, and full of vitality.</option>
+              <option>I take care of my body and my body takes care of me.</option>
+              <option>I wake up with purpose and go to bed with gratitude.</option>
+              <option>I have the energy and drive to crush my goals today.</option>
+              <option>I nourish my mind, body, and soul with love and care.</option>
+            </optgroup>
+            <optgroup label="❤️ Relationships">
+              <option>I am surrounded by people who love and support me.</option>
+              <option>I give and receive love freely and generously.</option>
+              <option>I attract kind, genuine, and uplifting people into my life.</option>
+              <option>I show up fully for the people who matter most to me.</option>
+            </optgroup>
+            <optgroup label="💼 Work &amp; Purpose">
+              <option>My work makes a difference and I am proud of what I create.</option>
+              <option>I am focused, disciplined, and productive today.</option>
+              <option>I bring creativity, passion, and excellence to everything I do.</option>
+              <option>I am exactly where I need to be on my journey.</option>
+              <option>My goals are within reach and I am moving toward them.</option>
+            </optgroup>
+          </select>
+          <input type="text" id="affirmation" placeholder="Or type your own affirmation here...">
+        </div>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="field"><label>Today's win</label><input type="text" id="refl-win" placeholder="What went well?"></div>
+      <div class="field"><label>Energy (1–10)</label><input type="number" id="refl-energy" min="1" max="10" placeholder="7"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Hourly planner</div>
+    <div id="schedule-grid"></div>
+  </div>
+</div>
+
+<!-- TO-DO -->
+<div class="panel" id="panel-todo">
+  <div class="section-row"><h2>To-Do List</h2></div>
+  <div class="card">
+    <div class="todo-add">
+      <input type="text" id="todo-input" placeholder="Add a task..." onkeydown="if(event.key==='Enter')addTodo()">
+      <select id="todo-cat" style="width:120px">
+        <option>Work</option><option>Personal</option><option>Health</option><option>Errands</option>
+      </select>
+      <button class="btn btn-primary" onclick="addTodo()">Add</button>
+    </div>
+    <div class="cat-tabs">
+      <button class="cat-tab active" onclick="filterTodos('All')">All</button>
+      <button class="cat-tab" onclick="filterTodos('Work')">Work</button>
+      <button class="cat-tab" onclick="filterTodos('Personal')">Personal</button>
+      <button class="cat-tab" onclick="filterTodos('Health')">Health</button>
+      <button class="cat-tab" onclick="filterTodos('Errands')">Errands</button>
+    </div>
+    <div id="todo-list"></div>
+  </div>
+</div>
+
+<!-- GRATITUDE -->
+<div class="panel" id="panel-gratitude">
+  <div class="section-row">
+    <h2>Gratitude Journal</h2>
+    <button class="btn btn-gold" onclick="addGratitude()">+ New entry</button>
+  </div>
+  <div id="grat-list"></div>
+</div>
+
+<!-- GOALS -->
+<div class="panel" id="panel-goals">
+  <div class="section-row">
+    <h2>Goal Setting</h2>
+    <button class="btn btn-primary" onclick="addGoal()">+ Add goal</button>
+  </div>
+  <div id="goals-list"></div>
+</div>
+
+<!-- MEALS -->
+<div class="panel" id="panel-meals">
+  <div class="section-row"><h2>Meal Planner</h2></div>
+  <div id="meal-days"></div>
+  <div class="card">
+    <div class="card-title">Grocery list</div>
+    <div id="grocery-list" style="margin-bottom:10px"></div>
+    <div class="add-row">
+      <input type="text" id="grocery-inp" placeholder="Add item..." onkeydown="if(event.key==='Enter')addGrocery()">
+      <button class="btn btn-outline" onclick="addGrocery()">Add</button>
+    </div>
+  </div>
+</div>
+
+<!-- BUDGET -->
+<div class="panel" id="panel-budget">
+  <div class="section-row"><h2>Budget Tracker</h2></div>
+  <div class="budget-summary">
+    <div class="bud-stat income"><div class="bud-val" id="bud-inc">$0</div><div class="bud-lbl">Income</div></div>
+    <div class="bud-stat expense"><div class="bud-val" id="bud-exp">$0</div><div class="bud-lbl">Expenses</div></div>
+    <div class="bud-stat balance" style="grid-column:span 2"><div class="bud-val" id="bud-bal">$0</div><div class="bud-lbl">Remaining balance</div></div>
+  </div>
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-title">Income</div>
+    <table class="bud-table"><thead><tr><th>Source</th><th style="text-align:right">Amount</th><th></th></tr></thead><tbody id="inc-rows"></tbody></table>
+    <div class="add-row">
+      <input type="text" id="inc-name" placeholder="Source">
+      <input type="number" id="inc-amt" placeholder="0" style="width:90px">
+      <button class="btn btn-outline" onclick="addIncome()">Add</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Expenses</div>
+    <table class="bud-table"><thead><tr><th>Category</th><th style="text-align:right">Amount</th><th></th></tr></thead><tbody id="exp-rows"></tbody></table>
+    <div class="add-row">
+      <input type="text" id="exp-name" placeholder="Category">
+      <input type="number" id="exp-amt" placeholder="0" style="width:90px">
+      <button class="btn btn-outline" onclick="addExpense()">Add</button>
+    </div>
+  </div>
+</div>
+
+<!-- WATER -->
+<div class="panel" id="panel-water">
+  <div class="section-row"><h2>Water Tracker</h2></div>
+  <div class="card" style="padding:28px 20px">
+    <div class="water-big" id="water-count">0</div>
+    <div class="water-sub">glasses today (goal: 8)</div>
+    <div class="water-glasses" id="water-glasses"></div>
+    <div class="prog-wrap" style="max-width:320px;margin:0 auto">
+      <div class="prog-bar" id="water-bar" style="width:0%;background:#2980B9"></div>
+    </div>
+    <div class="water-btns">
+      <button class="btn btn-outline" onclick="addWater()">+ Glass</button>
+      <button class="btn btn-outline" onclick="removeWater()">− Remove</button>
+      <button class="btn btn-outline" onclick="resetWater()">Reset</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Wellness log</div>
+    <div class="grid-2">
+      <div class="field"><label>Sleep (hrs)</label><input type="number" id="w-sleep" step="0.5" placeholder="7.5"></div>
+      <div class="field"><label>Steps</label><input type="number" id="w-steps" placeholder="10000"></div>
+      <div class="field"><label>Exercise (min)</label><input type="number" id="w-exercise" placeholder="30"></div>
+      <div class="field"><label>Mood (1–10)</label><input type="number" id="w-mood" min="1" max="10" placeholder="8"></div>
+    </div>
+  </div>
+</div>
+```
+
+  </div>
+
+  <!-- STICKER OVERLAY -->
+
+  <div class="sticker-overlay" id="sticker-overlay" onclick="closeSticker()"></div>
+  <div class="sticker-panel" id="sticker-panel">
+    <div class="sticker-panel-title">
+      <span id="sticker-day-label">Add sticker</span>
+      <button class="sticker-close" onclick="closeSticker()">✕</button>
+    </div>
+    <div class="sticker-tabs" id="sticker-tabs"></div>
+    <div class="sticker-grid" id="sticker-grid"></div>
+    <div class="sticker-actions">
+      <button class="btn btn-outline btn-sm" onclick="clearDayStickers()" style="flex:1">Clear day</button>
+      <button class="btn btn-primary btn-sm" onclick="closeSticker()" style="flex:1">Done</button>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+
+  <nav class="bottom-nav" id="bottom-nav">
+    <button class="nav-item active" onclick="navigate('dashboard')" data-page="dashboard">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="6" height="6" rx="1.5"/><rect x="11" y="3" width="6" height="6" rx="1.5"/><rect x="3" y="11" width="6" height="6" rx="1.5"/><rect x="11" y="11" width="6" height="6" rx="1.5"/></svg>
+      Home
+      <div class="nav-dot"></div>
+    </button>
+    <button class="nav-item" onclick="navigate('todo')" data-page="todo">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 10l3 3 7-7"/><rect x="3" y="3" width="14" height="14" rx="2"/></svg>
+      Tasks
+      <div class="nav-dot"></div>
+    </button>
+    <button class="nav-item" onclick="navigate('schedule')" data-page="schedule">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="10" r="7"/><path d="M10 6v4l3 2"/></svg>
+      Schedule
+      <div class="nav-dot"></div>
+    </button>
+    <button class="nav-item" onclick="navigate('budget')" data-page="budget">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="5" width="16" height="11" rx="2"/><path d="M2 9h16"/></svg>
+      Budget
+      <div class="nav-dot"></div>
+    </button>
+    <button class="nav-item" onclick="toggleMore()" id="more-btn" data-page="more">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="5" cy="10" r="1.2" fill="currentColor" stroke="none"/><circle cx="10" cy="10" r="1.2" fill="currentColor" stroke="none"/><circle cx="15" cy="10" r="1.2" fill="currentColor" stroke="none"/></svg>
+      More
+      <div class="nav-dot"></div>
+    </button>
+  </nav>
+
+  <!-- MORE MENU -->
+
+  <div class="more-overlay" id="more-overlay" onclick="closeMore()"></div>
+  <div class="more-menu" id="more-menu">
+    <div class="more-grid">
+      <button class="more-item" onclick="navigateMore('monthly')" data-page="monthly">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="14" height="13" rx="1.5"/><path d="M3 8h14M7 4V2M13 4V2"/></svg>
+        Monthly
+      </button>
+      <button class="more-item" onclick="navigateMore('goals')" data-page="goals">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="10" r="7"/><circle cx="10" cy="10" r="3"/></svg>
+        Goals
+      </button>
+      <button class="more-item" onclick="navigateMore('gratitude')" data-page="gratitude">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 17s-7-4-7-9a5 5 0 0110 0c0-4 10 5 0 9"/></svg>
+        Gratitude
+      </button>
+      <button class="more-item" onclick="navigateMore('meals')" data-page="meals">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 3v6a4 4 0 008 0V3M10 17v-4"/></svg>
+        Meals
+      </button>
+      <button class="more-item" onclick="navigateMore('water')" data-page="water">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 3C10 3 5 8.5 5 12a5 5 0 0010 0c0-3.5-5-9-5-9z"/></svg>
+        Water
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">Saved ✓</div>
+
+<script>
+const PW_KEY = 'apex_pw_v2';
+const SK = 'apex_data_v2';
+
+let S = {
+  todos:[], gratitude:[], goals:[], grocery:[], income:[], expenses:[],
+  water:0, schedule:{}, meals:{}, monthly:{}, wellness:{}, daily:{}, calStickers:{},
+  calMonth: new Date().getMonth(), calYear: new Date().getFullYear(),
+};
+
+const QUOTES = [
+  "The secret of getting ahead is getting started.",
+  "Small steps every day lead to big results.",
+  "Progress, not perfection.",
+  "One day or day one — you decide.",
+  "Success is the sum of small efforts, repeated.",
+  "Discipline is choosing between what you want now and what you want most.",
+  "Your future is created by what you do today.",
+];
+
+/* ── LOCK ── */
+function hash(s) {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) { h = ((h<<5)-h)+s.charCodeAt(i); h|=0; }
+  return h.toString(36);
+}
+function checkStrength() {
+  const pw = document.getElementById('setup-pw1').value;
+  const bars = [1,2,3,4].map(i => document.getElementById('sb'+i));
+  bars.forEach(b => b.className='strength-bar');
+  const lbl = document.getElementById('strength-label');
+  if (!pw) { lbl.textContent='Enter a password above'; return; }
+  let s=0;
+  if(pw.length>=4) s++;
+  if(pw.length>=8) s++;
+  if(/[A-Z0-9]/.test(pw)) s++;
+  if(/[^A-Za-z0-9]/.test(pw)) s++;
+  const cls=['weak','ok','good','strong'], txt=['Weak','Fair','Good','Strong'];
+  for(let i=0;i<s;i++) bars[i].classList.add(cls[Math.min(s-1,3)]);
+  lbl.textContent = s>0 ? 'Strength: '+txt[s-1] : 'Too short';
+}
+function finishSetup() {
+  const p1=document.getElementById('setup-pw1').value;
+  const p2=document.getElementById('setup-pw2').value;
+  const err=document.getElementById('setup-error');
+  if(p1.length<4){err.textContent='At least 4 characters required.';return;}
+  if(p1!==p2){err.textContent='Passwords do not match.';return;}
+  localStorage.setItem(PW_KEY,hash(p1));
+  unlock();
+}
+function tryLogin() {
+  const p=document.getElementById('login-pw').value;
+  const err=document.getElementById('login-error');
+  if(hash(p)===localStorage.getItem(PW_KEY)){unlock();}
+  else{err.textContent='Incorrect password.';document.getElementById('login-pw').value='';document.getElementById('login-pw').focus();}
+}
+function unlock() {
+  document.getElementById('lock-screen').classList.add('hidden');
+  document.getElementById('app').style.display='flex';
+  document.getElementById('app').style.flexDirection='column';
+  init();
+}
+function showReset(){showStep('step-reset');}
+function showLogin(){showStep('step-login');setTimeout(()=>document.getElementById('login-pw').focus(),80);}
+function showStep(id){document.querySelectorAll('.lock-step').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function confirmReset(){localStorage.removeItem(PW_KEY);localStorage.removeItem(SK);location.reload();}
+function togglePw(id,btn){
+  const inp=document.getElementById(id);
+  const showing=inp.type==='text';
+  inp.type=showing?'password':'text';
+  if(!showing){inp.style.background='rgba(255,255,255,0.92)';inp.style.color='#1A1612';inp.style.webkitTextFillColor='#1A1612';inp.style.letterSpacing='2px';}
+  else{inp.style.background='rgba(255,255,255,0.12)';inp.style.color='#fff';inp.style.webkitTextFillColor='#fff';inp.style.letterSpacing='4px';}
+  btn.style.color=showing?'rgba(255,255,255,0.35)':'#555';
+}
+function initLock(){
+  if(localStorage.getItem(PW_KEY)){showStep('step-login');setTimeout(()=>document.getElementById('login-pw').focus(),80);}
+  else{setTimeout(()=>document.getElementById('setup-pw1').focus(),80);}
+}
+initLock();
+
+/* ── INIT ── */
+function init(){load();setDates();renderAll();}
+
+function setDates(){
+  const n=new Date();
+  const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const h=n.getHours();
+  document.getElementById('welcome-msg').textContent=(h<12?'Good morning':h<17?'Good afternoon':'Good evening')+'!';
+  const dateStr=days[n.getDay()]+', '+months[n.getMonth()]+' '+n.getDate();
+  document.getElementById('welcome-date').textContent=dateStr;
+  document.getElementById('topbar-date').textContent=dateStr;
+  document.getElementById('daily-quote').textContent='"'+QUOTES[n.getDate()%QUOTES.length]+'"';
+}
+
+/* ── NAVIGATE ── */
+const PAGE_TITLES={dashboard:'Dashboard',monthly:'Monthly Overview',schedule:'Daily Schedule',todo:'To-Do List',gratitude:'Gratitude Journal',goals:'Goal Setting',meals:'Meal Planner',budget:'Budget Tracker',water:'Water Tracker'};
+const MAIN_NAV=['dashboard','todo','schedule','budget'];
+let currentPage='dashboard';
+
+function navigate(page){
+  currentPage=page;
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+page).classList.add('active');
+  document.getElementById('topbar-title').textContent=PAGE_TITLES[page]||page;
+  document.querySelectorAll('.nav-item[data-page]').forEach(n=>{
+    n.classList.toggle('active', n.dataset.page===page || (page==='more'&&n.dataset.page==='more'));
+  });
+  // highlight more-items
+  document.querySelectorAll('.more-item[data-page]').forEach(m=>m.classList.toggle('active',m.dataset.page===page));
+  window.scrollTo(0,0);
+  if(page==='dashboard')renderDashboard();
+  if(page==='monthly')renderCalendar();
+}
+function navigateMore(page){closeMore();navigate(page);}
+function toggleMore(){
+  const menu=document.getElementById('more-menu');
+  const overlay=document.getElementById('more-overlay');
+  const open=menu.classList.contains('open');
+  if(open){closeMore();}else{menu.classList.add('open');overlay.classList.add('open');document.getElementById('more-btn').classList.add('active');}
+}
+function closeMore(){
+  document.getElementById('more-menu').classList.remove('open');
+  document.getElementById('more-overlay').classList.remove('open');
+  if(!['monthly','goals','gratitude','meals','water'].includes(currentPage)) document.getElementById('more-btn').classList.remove('active');
+}
+
+/* ── SAVE / LOAD ── */
+function collect(){
+  S.daily.affirmation=v('affirmation');S.daily.win=v('refl-win');S.daily.energy=v('refl-energy');
+  S.monthly.intent=v('month-intent');S.monthly.p1=v('mpri1');S.monthly.p2=v('mpri2');S.monthly.p3=v('mpri3');
+  S.wellness.sleep=v('w-sleep');S.wellness.steps=v('w-steps');S.wellness.exercise=v('w-exercise');S.wellness.mood=v('w-mood');
+  document.querySelectorAll('.time-input').forEach(i=>{S.schedule[i.dataset.h]=i.value;});
+  document.querySelectorAll('.meal-ta').forEach(i=>{S.meals[i.dataset.k]=i.value;});
+  document.querySelectorAll('.goal-inp').forEach(i=>{const idx=+i.dataset.idx,f=i.dataset.f;if(S.goals[idx])S.goals[idx][f]=i.value;});
+  document.querySelectorAll('.goal-prog').forEach(i=>{const idx=+i.dataset.idx;if(S.goals[idx])S.goals[idx].progress=+i.value;});
+  document.querySelectorAll('.grat-inp').forEach(i=>{const e=+i.dataset.e,f=i.dataset.f;if(S.gratitude[e])S.gratitude[e][f]=i.value;});
+  document.querySelectorAll('.amt-input[data-t="inc"]').forEach(i=>{if(S.income[+i.dataset.i])S.income[+i.dataset.i].amount=+i.value||0;});
+  document.querySelectorAll('.amt-input[data-t="exp"]').forEach(i=>{if(S.expenses[+i.dataset.i])S.expenses[+i.dataset.i].amount=+i.value||0;});
+}
+function saveAll(){collect();try{localStorage.setItem(SK,JSON.stringify(S));}catch(e){}showToast();}
+function load(){try{const d=localStorage.getItem(SK);if(d)S={...S,...JSON.parse(d)};}catch(e){}}
+function v(id){const e=document.getElementById(id);return e?e.value:'';}
+function sv(id,val){const e=document.getElementById(id);if(e&&val!=null)e.value=val||'';}
+function showToast(){const t=document.getElementById('toast');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000);}
+
+function renderAll(){
+  renderSchedule();renderTodos();renderGratitude();renderGoals();
+  renderMeals();renderGrocery();renderBudget();renderWater();renderCalendar();renderDashboard();
+  if (S.daily.affirmation) {
+    const inp = document.getElementById('affirmation');
+    const sel = document.getElementById('affirmation-select');
+    if (inp) inp.value = S.daily.affirmation;
+    if (sel) {
+      for (let opt of sel.options) {
+        if (opt.text === S.daily.affirmation) { opt.selected = true; break; }
+      }
+    }
+  }
+  sv('refl-win',S.daily.win);sv('refl-energy',S.daily.energy);
+  sv('month-intent',S.monthly.intent);sv('mpri1',S.monthly.p1);sv('mpri2',S.monthly.p2);sv('mpri3',S.monthly.p3);
+  sv('w-sleep',S.wellness.sleep);sv('w-steps',S.wellness.steps);sv('w-exercise',S.wellness.exercise);sv('w-mood',S.wellness.mood);
+}
+
+/* ── SCHEDULE ── */
+function renderSchedule(){
+  const g=document.getElementById('schedule-grid'); if(!g)return;
+  const hours=[];
+  for(let h=5;h<=21;h++){const l=h===12?'12 PM':h<12?h+' AM':(h-12)+' PM';hours.push({h,l});}
+  g.innerHTML=hours.map(({h,l})=>{
+    const val=(S.schedule&&S.schedule[h])||'';
+    return`<div class="time-block ${val?'has-event':''}">
+      <div class="time-label">${l}</div>
+      <input class="time-input" data-h="${h}" value="${esc(val)}" placeholder="Add event...">
+      <span style="cursor:pointer;color:var(--text3);font-size:13px" onclick="clearSlot(${h})">✕</span>
+    </div>`;
+  }).join('');
+}
+function clearSlot(h){if(S.schedule)S.schedule[h]='';renderSchedule();}
+
+/* ── TO-DO ── */
+let todoFilter='All';
+const catColor={Work:'tag-navy',Personal:'tag-gold',Health:'tag-green',Errands:'tag-red'};
+function addTodo(){
+  const inp=document.getElementById('todo-input'),cat=document.getElementById('todo-cat').value,text=inp.value.trim();
+  if(!text)return;
+  S.todos.push({id:Date.now(),text,cat,done:false});inp.value='';
+  renderTodos();renderDashboard();saveAll();
+}
+function toggleTodo(id){const t=S.todos.find(t=>t.id===id);if(t)t.done=!t.done;renderTodos();renderDashboard();saveAll();}
+function deleteTodo(id){S.todos=S.todos.filter(t=>t.id!==id);renderTodos();renderDashboard();saveAll();}
+function filterTodos(cat){
+  todoFilter=cat;
+  document.querySelectorAll('.cat-tab').forEach(t=>t.classList.toggle('active',t.textContent===cat));
+  renderTodos();
+}
+function renderTodos(){
+  const list=document.getElementById('todo-list');if(!list)return;
+  const filtered=todoFilter==='All'?S.todos:S.todos.filter(t=>t.cat===todoFilter);
+  if(!filtered.length){list.innerHTML='<div class="empty">No tasks yet. Add one above!</div>';return;}
+  list.innerHTML=filtered.map(t=>`
+    <div class="todo-item ${t.done?'done':''}">
+      <div class="todo-cb ${t.done?'checked':''}" onclick="toggleTodo(${t.id})">${t.done?'✓':''}</div>
+      <span class="todo-text">${esc(t.text)}</span>
+      <span class="tag ${catColor[t.cat]||'tag-navy'}">${t.cat}</span>
+      <button class="del-btn" onclick="deleteTodo(${t.id})">✕</button>
+    </div>`).join('');
+}
+
+/* ── GRATITUDE ── */
+function addGratitude(){
+  const n=new Date();
+  S.gratitude.unshift({date:n.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'}),grateful:'',joy:'',person:''});
+  renderGratitude();saveAll();
+}
+function deleteGratitude(i){S.gratitude.splice(i,1);renderGratitude();saveAll();}
+function renderGratitude(){
+  const list=document.getElementById('grat-list');if(!list)return;
+  if(!S.gratitude.length){list.innerHTML='<div class="empty">No entries yet. Add one to start your practice!</div>';return;}
+  list.innerHTML=S.gratitude.map((g,i)=>`
+    <div class="grat-entry">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div class="grat-date">${g.date}</div>
+        <button class="btn btn-outline btn-sm" onclick="deleteGratitude(${i})">Delete</button>
+      </div>
+      <div class="field"><div class="grat-label">I'm grateful for...</div>
+        <input type="text" class="grat-inp" data-e="${i}" data-f="grateful" value="${esc(g.grateful)}" placeholder="Write here..."></div>
+      <div class="field"><div class="grat-label">A small joy today...</div>
+        <input type="text" class="grat-inp" data-e="${i}" data-f="joy" value="${esc(g.joy)}" placeholder="Write here..."></div>
+      <div class="field"><div class="grat-label">Someone I appreciate...</div>
+        <input type="text" class="grat-inp" data-e="${i}" data-f="person" value="${esc(g.person)}" placeholder="Write here..."></div>
+    </div>`).join('');
+}
+
+/* ── GOALS ── */
+const GOAL_CATS=['Career','Health','Financial','Personal Growth','Relationships','Creative'];
+function addGoal(){S.goals.push({title:'New goal',cat:'Career',why:'',deadline:'',progress:0});renderGoals();saveAll();}
+function deleteGoal(i){S.goals.splice(i,1);renderGoals();saveAll();}
+function renderGoals(){
+  const list=document.getElementById('goals-list');if(!list)return;
+  if(!S.goals.length){list.innerHTML='<div class="empty">No goals yet. Click "Add goal" to start!</div>';return;}
+  list.innerHTML=S.goals.map((g,i)=>`
+    <div class="goal-card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:12px">
+        <input class="goal-inp" data-idx="${i}" data-f="title" value="${esc(g.title)}" placeholder="Goal title" style="font-family:'DM Serif Display',serif;font-size:17px;border:none;background:transparent;padding:0;width:100%;outline:none;color:var(--navy)">
+        <button class="btn btn-outline btn-sm" onclick="deleteGoal(${i})">✕</button>
+      </div>
+      <div class="grid-2" style="margin-bottom:10px">
+        <div class="field"><label>Category</label>
+          <select class="goal-inp" data-idx="${i}" data-f="cat">${GOAL_CATS.map(c=>`<option ${g.cat===c?'selected':''}>${c}</option>`).join('')}</select></div>
+        <div class="field"><label>Deadline</label>
+          <input type="text" class="goal-inp" data-idx="${i}" data-f="deadline" value="${esc(g.deadline)}" placeholder="e.g. Dec 2025"></div>
+      </div>
+      <div class="field"><label>Why it matters</label>
+        <input type="text" class="goal-inp" data-idx="${i}" data-f="why" value="${esc(g.why)}" placeholder="Your motivation..."></div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text3);margin-bottom:5px"><span>Progress</span><span>${g.progress||0}%</span></div>
+      <div class="prog-wrap"><div class="prog-bar navy" style="width:${g.progress||0}%;background:var(--navy)"></div></div>
+      <input type="range" class="goal-prog" data-idx="${i}" min="0" max="100" value="${g.progress||0}" style="width:100%;margin-top:8px;accent-color:var(--navy)" oninput="S.goals[${i}].progress=+this.value;document.querySelector('.goal-prog[data-idx=\\'${i}\\']').previousElementSibling.firstChild.style.width=this.value+'%';this.previousElementSibling.previousElementSibling.lastChild.textContent=this.value+'%'">
+    </div>`).join('');
+}
+
+/* ── MEALS ── */
+const MEAL_DAYS=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+const MEAL_TYPES=['Breakfast','Lunch','Dinner','Snacks'];
+function renderMeals(){
+  const c=document.getElementById('meal-days');if(!c)return;
+  c.innerHTML=MEAL_DAYS.map((day,di)=>`
+    <div class="meal-day">
+      <div class="meal-day-header ${di>=5?'weekend':''}">${day}</div>
+      <div class="meal-slots">
+        ${MEAL_TYPES.map(m=>{
+          const k=m+'_'+di;const val=(S.meals&&S.meals[k])||'';
+          return`<div class="meal-slot"><label>${m}</label><textarea class="meal-ta" data-k="${k}" placeholder="...">${esc(val)}</textarea></div>`;
+
+```
+    }).join('')}
+  </div>
+</div>`).join('');
+```
+
+}
+
+/* ── GROCERY ── */
+function addGrocery(){
+const inp=document.getElementById(‘grocery-inp’),text=inp.value.trim();
+if(!text)return;S.grocery.push({id:Date.now(),text,done:false});inp.value=’’;renderGrocery();saveAll();
+}
+function renderGrocery(){
+const list=document.getElementById(‘grocery-list’);if(!list)return;
+if(!S.grocery.length){list.innerHTML=’<div style="color:var(--text3);font-size:13px;padding:6px 0">No items yet.</div>’;return;}
+list.innerHTML=S.grocery.map(g=>` <div class="todo-item ${g.done?'done':''}"> <div class="todo-cb ${g.done?'checked':''}" onclick="toggleGrocery(${g.id})">${g.done?'✓':''}</div> <span class="todo-text">${esc(g.text)}</span> <button class="del-btn" style="opacity:1" onclick="S.grocery=S.grocery.filter(x=>x.id!==${g.id});renderGrocery();saveAll()">✕</button> </div>`).join(’’);
+}
+function toggleGrocery(id){const g=S.grocery.find(g=>g.id===id);if(g)g.done=!g.done;renderGrocery();saveAll();}
+
+/* ── BUDGET ── */
+function addIncome(){
+const n=document.getElementById(‘inc-name’).value.trim(),a=+document.getElementById(‘inc-amt’).value||0;
+if(!n)return;S.income.push({name:n,amount:a});document.getElementById(‘inc-name’).value=’’;document.getElementById(‘inc-amt’).value=’’;
+renderBudget();saveAll();
+}
+function addExpense(){
+const n=document.getElementById(‘exp-name’).value.trim(),a=+document.getElementById(‘exp-amt’).value||0;
+if(!n)return;S.expenses.push({name:n,amount:a});document.getElementById(‘exp-name’).value=’’;document.getElementById(‘exp-amt’).value=’’;
+renderBudget();saveAll();
+}
+function renderBudget(){
+const ir=document.getElementById(‘inc-rows’),er=document.getElementById(‘exp-rows’);if(!ir||!er)return;
+ir.innerHTML=S.income.map((r,i)=>`<tr><td>${esc(r.name)}</td><td style="text-align:right"><input class="amt-input" data-t="inc" data-i="${i}" type="number" value="${r.amount}"></td><td><button onclick="S.income.splice(${i},1);renderBudget();saveAll()" style="background:none;border:none;cursor:pointer;color:var(--text3)">✕</button></td></tr>`).join(’’)||’<tr><td colspan="3" style="color:var(--text3);font-size:13px;padding:10px 0">No income added yet.</td></tr>’;
+er.innerHTML=S.expenses.map((r,i)=>`<tr><td>${esc(r.name)}</td><td style="text-align:right"><input class="amt-input" data-t="exp" data-i="${i}" type="number" value="${r.amount}"></td><td><button onclick="S.expenses.splice(${i},1);renderBudget();saveAll()" style="background:none;border:none;cursor:pointer;color:var(--text3)">✕</button></td></tr>`).join(’’)||’<tr><td colspan="3" style="color:var(--text3);font-size:13px;padding:10px 0">No expenses added yet.</td></tr>’;
+const inc=S.income.reduce((s,r)=>s+(+r.amount||0),0);
+const exp=S.expenses.reduce((s,r)=>s+(+r.amount||0),0);
+document.getElementById(‘bud-inc’).textContent=’$’+inc.toFixed(0);
+document.getElementById(‘bud-exp’).textContent=’$’+exp.toFixed(0);
+document.getElementById(‘bud-bal’).textContent=’$’+(inc-exp).toFixed(0);
+}
+
+/* ── WATER ── */
+function renderWater(){
+const g=document.getElementById(‘water-glasses’),bar=document.getElementById(‘water-bar’),cnt=document.getElementById(‘water-count’);
+if(!g)return;
+const w=S.water||0;
+g.innerHTML=Array.from({length:8},(_,i)=>` <div class="glass ${i<w?'filled':''}" onclick="setWater(${i+1})"> <div class="glass-fill" style="height:${i<w?'100%':'0'}"></div> <div class="glass-num">${i+1}</div> </div>`).join(’’);
+if(bar)bar.style.width=Math.min(100,(w/8)*100)+’%’;
+if(cnt)cnt.textContent=w;
+const dw=document.getElementById(‘dash-water’);if(dw)dw.textContent=w;
+}
+function setWater(n){S.water=n;renderWater();saveAll();}
+function addWater(){if(S.water<8){S.water++;renderWater();saveAll();}}
+function removeWater(){if(S.water>0){S.water–;renderWater();saveAll();}}
+function resetWater(){S.water=0;renderWater();saveAll();}
+
+/* ── CALENDAR ── */
+const MONTHS=[‘January’,‘February’,‘March’,‘April’,‘May’,‘June’,‘July’,‘August’,‘September’,‘October’,‘November’,‘December’];
+function changeMonth(d){
+S.calMonth+=d;
+if(S.calMonth>11){S.calMonth=0;S.calYear++;}
+if(S.calMonth<0){S.calMonth=11;S.calYear–;}
+renderCalendar();
+}
+function renderCalendar(){
+const grid=document.getElementById(‘cal-grid’),title=document.getElementById(‘cal-title’);if(!grid)return;
+if(title)title.textContent=MONTHS[S.calMonth]+’ ‘+S.calYear;
+const now=new Date(),fd=new Date(S.calYear,S.calMonth,1).getDay(),dim=new Date(S.calYear,S.calMonth+1,0).getDate();
+const offset=(fd+6)%7;
+const days=[‘M’,‘T’,‘W’,‘T’,‘F’,‘S’,‘S’];
+let html=days.map(d=>`<div class="cal-hdr">${d}</div>`).join(’’);
+for(let i=0;i<offset;i++)html+=’<div class="cal-day other-month"></div>’;
+for(let d=1;d<=dim;d++){
+const isToday=d===now.getDate()&&S.calMonth===now.getMonth()&&S.calYear===now.getFullYear();
+const dow=(offset+d-1)%7;
+const dayKey=`${S.calYear}-${S.calMonth}-${d}`;
+const dayStickers=(S.calStickers&&S.calStickers[dayKey])||[];
+const stickersHtml=dayStickers.length?`<div class="cal-stickers">${dayStickers.map(s=>`<span class="cal-sticker">${s}</span>`).join('')}</div>`:’’;
+html+=`<div class="cal-day ${isToday?'today':''} ${dow>=5&&!isToday?'weekend':''}" onclick="openSticker('${dayKey}')" title="Add sticker"> <div class="cal-day-num">${d}</div> ${stickersHtml} </div>`;
+}
+grid.innerHTML=html;
+}
+
+/* ── DASHBOARD ── */
+function renderDashboard(){
+const td=document.getElementById(‘dash-todos’);
+if(td){
+const top=S.todos.filter(t=>!t.done).slice(0,4);
+td.innerHTML=top.length?top.map(t=>` <div class="todo-item"> <div class="todo-cb" onclick="toggleTodo(${t.id});renderDashboard()"></div> <span class="todo-text">${esc(t.text)}</span> <span class="tag ${catColor[t.cat]||'tag-navy'}">${t.cat}</span> </div>`).join(’’):’<div class="empty" style="padding:16px 0">No pending tasks.</div>’;
+}
+const sd=document.getElementById(‘dash-schedule’);
+if(sd&&S.schedule){
+const items=Object.entries(S.schedule).filter(([,v])=>v).slice(0,4);
+sd.innerHTML=items.length?items.map(([h,v])=>{
+const l=h==12?‘12 PM’:h<12?h+’ AM’:(h-12)+’ PM’;
+return`<div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)"><span style="font-size:12px;font-weight:600;color:var(--text3);min-width:48px">${l}</span><span style="font-size:14px">${esc(v)}</span></div>`;
+}).join(’’):’<div class="empty" style="padding:16px 0">No events today.</div>’;
+}
+const dt=document.getElementById(‘dash-tasks’);if(dt)dt.textContent=S.todos.filter(t=>!t.done).length;
+const dg=document.getElementById(‘dash-goals’);if(dg)dg.textContent=S.goals.length;
+renderWater();
+}
+
+function esc(s){if(!s)return’’;return String(s).replace(/&/g,’&’).replace(/</g,’<’).replace(/>/g,’>’).replace(/”/g,’"’);}
+
+/* ── STICKER PICKER ── */
+const STICKER_SETS = {
+‘Mood’: [‘😊’,‘😍’,‘🥰’,‘😎’,‘😴’,‘😤’,‘🥳’,‘😢’,‘😂’,‘🤩’,‘😌’,‘🔥’,‘✨’,‘💫’,‘⭐’,‘🌟’],
+‘Nature’: [‘🌸’,‘🌺’,‘🌻’,‘🌹’,‘🍀’,‘🌿’,‘🍃’,‘🌈’,‘☀️’,‘🌙’,‘⛅’,‘🌊’,‘🦋’,‘🐝’,‘🌵’,‘🍁’],
+‘Events’: [‘🎉’,‘🎂’,‘🎁’,‘🎈’,‘🏖️’,‘✈️’,‘🎓’,‘💍’,‘🏆’,‘🎯’,‘📅’,‘📌’,‘🔔’,‘💌’,‘🎵’,‘🎨’],
+‘Health’: [‘💪’,‘🏃’,‘🧘’,‘🥗’,‘💊’,‘🏋️’,‘🚴’,‘🧠’,‘❤️’,‘💤’,‘🥤’,‘🌅’,‘🍎’,‘🥦’,‘🧘’,‘🏊’],
+‘Work’: [‘💼’,‘📝’,‘💡’,‘🖥️’,‘📊’,‘✅’,‘⏰’,‘☕’,‘📚’,‘🎯’,‘🔑’,‘💰’,‘📱’,‘🤝’,‘📈’,‘🗓️’],
+‘Fun’: [‘🎮’,‘🎬’,‘🎤’,‘🍕’,‘🍦’,‘🌮’,‘🎸’,‘⚽’,‘🏀’,‘🎲’,‘🎠’,‘🎡’,‘🎢’,‘🃏’,‘🎳’,‘🛹’],
+};
+
+let pickerDayKey = null;
+let pickerCategory = ‘Mood’;
+
+function openSticker(dayKey) {
+pickerDayKey = dayKey;
+const parts = dayKey.split(’-’);
+const d = new Date(+parts[0], +parts[1], +parts[2]);
+document.getElementById(‘sticker-day-label’).textContent =
+d.toLocaleDateString(‘en-US’, {weekday:‘short’, month:‘short’, day:‘numeric’});
+renderStickerTabs();
+renderStickerGrid();
+document.getElementById(‘sticker-overlay’).classList.add(‘open’);
+document.getElementById(‘sticker-panel’).classList.add(‘open’);
+}
+
+function closeSticker() {
+document.getElementById(‘sticker-overlay’).classList.remove(‘open’);
+document.getElementById(‘sticker-panel’).classList.remove(‘open’);
+pickerDayKey = null;
+}
+
+function renderStickerTabs() {
+const tabs = document.getElementById(‘sticker-tabs’);
+tabs.innerHTML = Object.keys(STICKER_SETS).map(cat =>
+`<button class="sticker-tab ${cat===pickerCategory?'active':''}" onclick="switchStickerCat('${cat}')">${cat}</button>`
+).join(’’);
+}
+
+function switchStickerCat(cat) {
+pickerCategory = cat;
+renderStickerTabs();
+renderStickerGrid();
+}
+
+function renderStickerGrid() {
+const grid = document.getElementById(‘sticker-grid’);
+const stickers = STICKER_SETS[pickerCategory] || [];
+const current = (S.calStickers && S.calStickers[pickerDayKey]) || [];
+grid.innerHTML = stickers.map(s =>
+`<button class="sticker-btn ${current.includes(s)?'selected-sticker':''}" onclick="toggleSticker('${s}')">${s}</button>`
+).join(’’);
+}
+
+function toggleSticker(emoji) {
+if (!S.calStickers) S.calStickers = {};
+if (!S.calStickers[pickerDayKey]) S.calStickers[pickerDayKey] = [];
+const arr = S.calStickers[pickerDayKey];
+const idx = arr.indexOf(emoji);
+if (idx > -1) { arr.splice(idx, 1); }
+else if (arr.length < 4) { arr.push(emoji); }
+renderStickerGrid();
+renderCalendar();
+saveAll();
+}
+
+function clearDayStickers() {
+if (!S.calStickers) return;
+S.calStickers[pickerDayKey] = [];
+renderStickerGrid();
+renderCalendar();
+saveAll();
+}
+
+function pickAffirmation(val) {
+if (val && val !== ‘’) {
+document.getElementById(‘affirmation’).value = val;
+saveAll();
+}
+}
+
+document.addEventListener(‘input’,()=>{clearTimeout(window._t);window._t=setTimeout(saveAll,1800);});
+</script>
+
+</body>
+</html>
