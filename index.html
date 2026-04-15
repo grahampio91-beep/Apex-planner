@@ -6,22 +6,20 @@
 <title>Apex Planner</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-/* Your full original CSS is here, cleaned and complete */
-:root {
-  --navy: #0F1F3D; --navy2: #1B2A4A; --gold: #C9943A; --gold-light: #F0C070;
-  --cream: #FAF8F4; --surface: #FFFFFF; --surface2: #F4F2EE; --border: #E2DDD6;
-  --text: #1A1612; --text2: #5A5248; --text3: #9A9088;
-  --success: #2D7A4F; --danger: #C0392B;
-  --radius: 14px; --radius-sm: 9px; --nav-h: 68px; --top-h: 56px;
-}
-* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--text); min-height: 100vh; font-size: 15px; line-height: 1.6; overscroll-behavior: none; }
-#lock-screen { position: fixed; inset: 0; background: #0F1F3D; display: flex; align-items: center; justify-content: center; z-index: 999; flex-direction: column; gap: 20px; min-height: 100vh; }
-.lock-card { background: #1B2A4A; border: 1px solid rgba(201,148,58,0.3); border-radius: 20px; padding: 40px 32px; width: min(400px, 92vw); text-align: center; }
-.lock-logo { font-family: 'DM Serif Display', serif; color: var(--gold-light); font-size: 28px; margin-bottom: 4px; }
-/* ... all your original CSS (panels, nav, cards, todo, budget, water, etc.) is fully restored and clean ... */
-.panel { display: none; }
-.panel.active { display: block; }
+:root{--navy:#0F1F3D;--gold:#C9943A;--gold-light:#F0C070;--cream:#FAF8F4}
+* {margin:0;padding:0;box-sizing:border-box}
+body{background:var(--cream);font-family:'DM Sans',sans-serif;min-height:100vh}
+#lock-screen{position:fixed;inset:0;background:#0F1F3D;display:flex;align-items:center;justify-content:center}
+.lock-card{background:#1B2A4A;color:white;padding:40px 30px;border-radius:20px;width:90%;max-width:380px;text-align:center}
+.lock-logo{font-family:'DM Serif Display',serif;font-size:32px;color:#F0C070;margin-bottom:8px}
+.lock-input{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.3);color:white;padding:14px;border-radius:8px;width:100%;margin:10px 0;font-size:16px;text-align:center}
+.lock-btn{background:var(--gold);color:white;border:none;padding:14px;border-radius:8px;width:100%;font-weight:600;cursor:pointer}
+.lock-strength{display:flex;gap:4px;margin:10px 0}
+.strength-bar{height:4px;flex:1;border-radius:2px;background:rgba(255,255,255,0.2)}
+.strength-bar.weak{background:#e74c3c}
+.strength-bar.ok{background:#e67e22}
+.strength-bar.good{background:#f1c40f}
+.strength-bar.strong{background:#2ecc71}
 </style>
 </head>
 <body>
@@ -31,44 +29,33 @@ body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(
     <div class="lock-logo">Apex Planner</div>
     <div class="lock-sub">Professional Edition</div>
 
-    <div class="lock-step active" id="step-setup">
-      <div class="lock-step-label">Create your password</div>
-      <div class="lock-input-wrap">
-        <input type="password" class="lock-input" id="setup-pw1" placeholder="Choose a password" autocomplete="new-password" oninput="checkStrength()">
-        <button type="button" class="show-pw-btn" onclick="togglePw('setup-pw1',this)">👁️</button>
-      </div>
-      <div class="lock-input-wrap">
-        <input type="password" class="lock-input" id="setup-pw2" placeholder="Confirm password" autocomplete="new-password" onkeydown="if(event.key==='Enter')finishSetup()">
-        <button type="button" class="show-pw-btn" onclick="togglePw('setup-pw2',this)">👁️</button>
-      </div>
-      <div class="lock-strength"><div class="strength-bar" id="sb1"></div><div class="strength-bar" id="sb2"></div><div class="strength-bar" id="sb3"></div><div class="strength-bar" id="sb4"></div></div>
-      <div class="strength-lbl" id="strength-label">Enter a password above</div>
-      <div class="lock-hint">Saved only on your device. You'll enter this each time you open your planner.</div>
-      <button class="lock-btn" onclick="finishSetup()">Create password & open planner</button>
-      <div class="lock-error" id="setup-error"></div>
-    </div>
-  </div>
-</div>
+    <div class="lock-step-label">Create your password</div>
+    <input type="password" class="lock-input" id="setup-pw1" placeholder="Choose a password" oninput="checkStrength()">
+    <input type="password" class="lock-input" id="setup-pw2" placeholder="Confirm password">
 
-<div id="app" style="display:none">
-  <!-- All your panels (dashboard, todo, schedule, budget, water, etc.) are here and clean -->
-  <div class="panel active" id="panel-dashboard">
-    <h1>Dashboard</h1>
-    <p>Welcome to your full planner!</p>
-    <!-- your original dashboard content goes here -->
+    <div class="lock-strength">
+      <div class="strength-bar" id="sb1"></div>
+      <div class="strength-bar" id="sb2"></div>
+      <div class="strength-bar" id="sb3"></div>
+      <div class="strength-bar" id="sb4"></div>
+    </div>
+    <div id="strength-label" style="color:#aaa;font-size:13px;margin-bottom:20px">Enter a password above</div>
+
+    <button class="lock-btn" id="unlock-btn">Create password & open planner</button>
+    <div id="setup-error" style="color:#ff7675;font-size:13px;margin-top:10px"></div>
   </div>
-  <!-- other panels are fully included in the real file -->
 </div>
 
 <script>
-/* FULL CLEAN JAVASCRIPT — no curly quotes, no broken blocks */
-const PW_KEY = 'apex_pw_v2';
-
-function hash(s) { let h = 0; for (let i = 0; i < s.length; i++) { h = ((h<<5)-h)+s.charCodeAt(i); h|=0; } return h.toString(36); }
+function hash(s) {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) { h = ((h<<5)-h)+s.charCodeAt(i); h|=0; }
+  return h.toString(36);
+}
 
 function checkStrength() {
   const pw = document.getElementById('setup-pw1').value;
-  const bars = [1,2,3,4].map(i => document.getElementById('sb'+i));
+  const bars = document.querySelectorAll('.strength-bar');
   bars.forEach(b => b.className = 'strength-bar');
   const lbl = document.getElementById('strength-label');
   if (!pw) { lbl.textContent = 'Enter a password above'; return; }
@@ -82,30 +69,18 @@ function checkStrength() {
   lbl.textContent = s > 0 ? 'Strength: ' + ['Weak','Fair','Good','Strong'][s-1] : 'Too short';
 }
 
-function togglePw(id,btn) {
-  const inp = document.getElementById(id);
-  const showing = inp.type === 'text';
-  inp.type = showing ? 'password' : 'text';
-  btn.innerHTML = showing ? '👁️' : '🙈';
-}
-
-function finishSetup() {
+// THIS IS THE KEY CHANGE FOR TESTING
+document.getElementById('unlock-btn').addEventListener('click', function() {
+  alert("✅ Button clicked! Now trying to unlock...");
   const p1 = document.getElementById('setup-pw1').value;
   const p2 = document.getElementById('setup-pw2').value;
-  const err = document.getElementById('setup-error');
-  if (p1.length < 4) { err.textContent = 'At least 4 characters required.'; return; }
-  if (p1 !== p2) { err.textContent = 'Passwords do not match.'; return; }
-  localStorage.setItem(PW_KEY, hash(p1));
-  unlock();
-}
-
-function unlock() {
-  document.getElementById('lock-screen').classList.add('hidden');
-  document.getElementById('app').style.display = 'flex';
-  console.log('✅ Planner unlocked!');
-}
-
-console.log('✅ Apex Planner ready');
+  if (p1.length < 4) { alert("Password too short"); return; }
+  if (p1 !== p2) { alert("Passwords do not match"); return; }
+  localStorage.setItem('apex_pw_v2', hash(p1));
+  document.getElementById('lock-screen').style.display = 'none';
+  alert("🎉 Planner unlocked! (Full version would show dashboard here)");
+  document.body.innerHTML += '<h2 style="text-align:center;margin-top:50px;color:#0F1F3D">Welcome to your Apex Planner! ✅</h2>';
+});
 </script>
 </body>
 </html>
