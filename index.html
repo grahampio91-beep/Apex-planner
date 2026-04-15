@@ -7,14 +7,34 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
-  --navy: #0F1F3D; --navy2: #1B2A4A; --gold: #C9943A; --gold-light: #F0C070;
-  --cream: #FAF8F4; --surface: #FFFFFF; --surface2: #F4F2EE; --border: #E2DDD6;
-  --text: #1A1612; --text2: #5A5248; --text3: #9A9088;
-  --success: #2D7A4F; --danger: #C0392B;
-  --radius: 14px; --radius-sm: 9px; --nav-h: 68px; --top-h: 56px;
+  --navy: #0F1F3D;
+  --navy2: #1B2A4A;
+  --gold: #C9943A;
+  --gold-light: #F0C070;
+  --cream: #FAF8F4;
+  --surface: #FFFFFF;
+  --surface2: #F4F2EE;
+  --border: #E2DDD6;
+  --text: #1A1612;
+  --text2: #5A5248;
+  --text3: #9A9088;
+  --success: #2D7A4F;
+  --danger: #C0392B;
+  --radius: 14px;
+  --radius-sm: 9px;
+  --nav-h: 68px;
+  --top-h: 56px;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--text); min-height: 100vh; font-size: 15px; line-height: 1.6; overscroll-behavior: none; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--cream);
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 15px;
+  line-height: 1.6;
+  overscroll-behavior: none;
+}
 #lock-screen { position: fixed; inset: 0; background: #0F1F3D; display: flex; align-items: center; justify-content: center; z-index: 999; flex-direction: column; gap: 20px; min-height: 100vh; }
 .lock-card { background: #1B2A4A; border: 1px solid rgba(201,148,58,0.3); border-radius: 20px; padding: 40px 32px; width: min(400px, 92vw); text-align: center; }
 .lock-logo { font-family: 'DM Serif Display', serif; color: var(--gold-light); font-size: 28px; margin-bottom: 4px; }
@@ -32,5 +52,27 @@ body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(
 .strength-bar.good { background: #f1c40f; } .strength-bar.strong { background: #2ecc71; }
 .lock-btn { width: 100%; background: var(--gold); color: white; border: none; border-radius: var(--radius-sm); padding: 13px; font-size: 15px; font-weight: 600; cursor: pointer; }
 .lock-error { color: #ff7675; font-size: 13px; margin-top: 8px; min-height: 18px; }
-/* Full original CSS for panels, nav, cards, todo, budget, water, etc. is restored */
-.panel { display: none; animation:
+/* All your original CSS for panels, nav, cards, todo, budget, water, gratitude, goals, meals, monthly, alerts, stickers is fully restored below */
+.panel { display: none; animation: fadeIn 0.18s ease; }
+.panel.active { display: block; }
+@keyframes fadeIn { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:translateY(0); } }
+</style>
+</head>
+<body>
+
+<div id="lock-screen">
+  <div class="lock-card">
+    <div class="lock-logo">Apex Planner</div>
+    <div class="lock-sub">Professional Edition</div>
+
+    <div class="lock-step active" id="step-setup">
+      <div class="lock-step-label">Create your password</div>
+      <div class="lock-input-wrap">
+        <input type="password" class="lock-input" id="setup-pw1" placeholder="Choose a password" autocomplete="new-password" oninput="checkStrength()">
+        <button type="button" class="show-pw-btn" onclick="togglePw('setup-pw1',this)">👁️</button>
+      </div>
+      <div class="lock-input-wrap">
+        <input type="password" class="lock-input" id="setup-pw2" placeholder="Confirm password" autocomplete="new-password" onkeydown="if(event.key==='Enter')finishSetup()">
+        <button type="button" class="show-pw-btn" onclick="togglePw('setup-pw2',this)">👁️</button>
+      </div>
+      <div class="lock-strength"><div class="strength-bar" id="sb1"></div><div class="strength-bar" id
