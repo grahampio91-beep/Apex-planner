@@ -1672,7 +1672,12 @@ function renderUpcomingAlerts() {
   }).join('');
 }
 
-document.addEventListener('input',function(){clearTimeout(window._t);window._t=setTimeout(saveAll,1800);});
+/* ── AUTO-SAVE: saves after every interaction ── */
+document.addEventListener('input', function(){ collect(); try{localStorage.setItem(SK,JSON.stringify(S));}catch(e){} });
+document.addEventListener('change', function(){ collect(); try{localStorage.setItem(SK,JSON.stringify(S));}catch(e){} });
+document.addEventListener('click', function(){ clearTimeout(window._clickSave); window._clickSave = setTimeout(function(){ collect(); try{localStorage.setItem(SK,JSON.stringify(S));}catch(e){} }, 500); });
+window.addEventListener('beforeunload', function(){ collect(); try{localStorage.setItem(SK,JSON.stringify(S));}catch(e){} });
+document.addEventListener('visibilitychange', function(){ if(document.visibilityState==='hidden'){ collect(); try{localStorage.setItem(SK,JSON.stringify(S));}catch(e){} } });
 </script>
 
 </body>
