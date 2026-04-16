@@ -687,6 +687,15 @@ label { font-size: 12px; font-weight: 500; color: var(--text2); display: block; 
           <div class="field"><label>Exercise (min)</label><input type="number" id="w-exercise" placeholder="30"></div>
           <div class="field"><label>Mood (1–10)</label><input type="number" id="w-mood" min="1" max="10" placeholder="8"></div>
         </div>
+        <button class="btn btn-gold" style="width:100%;margin-top:8px" onclick="logWellnessDay()">Save today's wellness</button>
+      </div>
+      <div class="card">
+        <div class="card-title">This week's average</div>
+        <div id="wellness-averages" style="margin-bottom:10px"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Wellness history</div>
+        <div id="wellness-history"></div>
       </div>
     </div>
 
@@ -750,6 +759,11 @@ label { font-size: 12px; font-weight: 500; color: var(--text2); display: block; 
       <span id="sticker-day-label">Add sticker</span>
       <button class="sticker-close" onclick="closeSticker()">✕</button>
     </div>
+    <div style="margin-bottom:12px">
+      <label style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;display:block">Day note</label>
+      <textarea id="cal-day-note" placeholder="Type a note for this day..." style="width:100%;min-height:50px;font-size:13px;border-radius:var(--radius-sm);border:1px solid var(--border);padding:8px 10px;font-family:inherit;resize:vertical;background:var(--surface2)" oninput="saveDayNote()"></textarea>
+    </div>
+    <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px">Stickers</div>
     <div class="sticker-tabs" id="sticker-tabs"></div>
     <div class="sticker-grid" id="sticker-grid"></div>
     <div class="sticker-actions">
@@ -823,7 +837,7 @@ const SK = 'apex_data_v2';
 
 let S = {
   todos:[], gratitude:[], goals:[], grocery:[], income:[], expenses:[],
-  water:0, schedule:{}, meals:{}, monthly:{}, wellness:{}, daily:{}, calStickers:{},
+  water:0, schedule:{}, meals:{}, monthly:{}, wellness:{}, wellnessLog:[], daily:{}, calStickers:{}, calNotes:{},
   calMonth: new Date().getMonth(), calYear: new Date().getFullYear(),
 };
 
@@ -982,7 +996,7 @@ function showToast(){const t=document.getElementById('toast');t.classList.add('s
 
 function renderAll(){
   renderSchedule();renderTodos();renderGratitude();renderGoals();
-  renderMeals();renderGrocery();renderBudget();renderWater();renderCalendar();renderDashboard();
+  renderMeals();renderGrocery();renderBudget();renderWater();renderCalendar();renderDashboard();renderWellness();
   if (S.daily.affirmation) {
     const inp = document.getElementById('affirmation');
     const sel = document.getElementById('affirmation-select');
@@ -1002,7 +1016,7 @@ function renderAll(){
 function renderSchedule(){
   const g=document.getElementById('schedule-grid'); if(!g)return;
   const hours=[];
-  for(let h=5;h<=21;h++){const l=h===12?'12 PM':h<12?h+' AM':(h-12)+' PM';hours.push({h,l});}
+  for(let h=0;h<=23;h++){const l=h===0?'12 AM':h===12?'12 PM':h<12?h+' AM':(h-12)+' PM';hours.push({h,l});}
   g.innerHTML=hours.map(({h,l})=>{
     const val=(S.schedule&&S.schedule[h])||'';
     return`<div class="time-block ${val?'has-event':''}">
@@ -1180,6 +1194,100 @@ function addWater(){if(S.water<8){S.water++;renderWater();saveAll();}}
 function removeWater(){if(S.water>0){S.water--;renderWater();saveAll();}}
 function resetWater(){S.water=0;renderWater();saveAll();}
 
+/* ── WELLNESS LOG ── */
+function logWellnessDay() {
+  var today = new Date().toISOString().split('T')[0];
+  var entry = {
+    date: today,
+    dateLabel: new Date().toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric'}),
+    sleep: parseFloat(v('w-sleep')) || 0,
+    steps: parseInt(v('w-steps')) || 0,
+    exercise: parseInt(v('w-exercise')) || 0,
+    mood: parseInt(v('w-mood')) || 0
+  };
+  if (!S.wellnessLog) S.wellnessLog = [];
+  // Replace if already logged today
+  var existingIdx = S.wellnessLog.findIndex(function(e) { return e.date === today; });
+  if (existingIdx > -1) {
+    S.wellnessLog[existingIdx] = entry;
+  } else {
+    S.wellnessLog.unshift(entry);
+  }
+  saveAll();
+  renderWellness();
+  showToast();
+}
+
+function renderWellness() {
+  renderWellnessAverages();
+  renderWellnessHistory();
+}
+
+function renderWellnessAverages() {
+  var el = document.getElementById('wellness-averages');
+  if (!el) return;
+  if (!S.wellnessLog || !S.wellnessLog.length) {
+    el.innerHTML = '<div class="empty" style="padding:12px 0">Log your first day to see averages.</div>';
+    return;
+  }
+  // Get last 7 entries
+  var last7 = S.wellnessLog.slice(0, 7);
+  var count = last7.length;
+  var avgSleep = last7.reduce(function(s,e){return s+e.sleep;},0) / count;
+  var avgSteps = last7.reduce(function(s,e){return s+e.steps;},0) / count;
+  var avgExercise = last7.reduce(function(s,e){return s+e.exercise;},0) / count;
+  var avgMood = last7.reduce(function(s,e){return s+e.mood;},0) / count;
+
+  el.innerHTML = '<div style="font-size:12px;color:var(--text3);margin-bottom:10px">Based on last ' + count + ' day' + (count>1?'s':'') + '</div>' +
+    '<div class="grid-2">' +
+    '<div style="background:var(--surface2);border-radius:var(--radius-sm);padding:12px;text-align:center">' +
+      '<div style="font-family:\'DM Serif Display\',serif;font-size:24px;color:var(--navy)">' + avgSleep.toFixed(1) + '</div>' +
+      '<div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px">Avg sleep (hrs)</div>' +
+    '</div>' +
+    '<div style="background:var(--surface2);border-radius:var(--radius-sm);padding:12px;text-align:center">' +
+      '<div style="font-family:\'DM Serif Display\',serif;font-size:24px;color:var(--navy)">' + Math.round(avgSteps).toLocaleString() + '</div>' +
+      '<div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px">Avg steps</div>' +
+    '</div>' +
+    '<div style="background:var(--surface2);border-radius:var(--radius-sm);padding:12px;text-align:center">' +
+      '<div style="font-family:\'DM Serif Display\',serif;font-size:24px;color:var(--navy)">' + Math.round(avgExercise) + '</div>' +
+      '<div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px">Avg exercise (min)</div>' +
+    '</div>' +
+    '<div style="background:var(--surface2);border-radius:var(--radius-sm);padding:12px;text-align:center">' +
+      '<div style="font-family:\'DM Serif Display\',serif;font-size:24px;color:var(--navy)">' + avgMood.toFixed(1) + '</div>' +
+      '<div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px">Avg mood</div>' +
+    '</div>' +
+    '</div>';
+}
+
+function renderWellnessHistory() {
+  var el = document.getElementById('wellness-history');
+  if (!el) return;
+  if (!S.wellnessLog || !S.wellnessLog.length) {
+    el.innerHTML = '<div class="empty" style="padding:12px 0">No entries yet.</div>';
+    return;
+  }
+  el.innerHTML = S.wellnessLog.slice(0, 14).map(function(e, i) {
+    return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">' +
+      '<div style="min-width:90px;font-size:12px;font-weight:600;color:var(--text3)">' + e.dateLabel + '</div>' +
+      '<div style="flex:1;display:flex;gap:12px;font-size:12px;color:var(--text2)">' +
+        '<span>Sleep: ' + e.sleep + 'h</span>' +
+        '<span>Steps: ' + (e.steps||0).toLocaleString() + '</span>' +
+        '<span>Ex: ' + e.exercise + 'm</span>' +
+        '<span>Mood: ' + e.mood + '</span>' +
+      '</div>' +
+      '<button onclick="deleteWellnessEntry('+i+')" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:13px">✕</button>' +
+    '</div>';
+  }).join('');
+}
+
+function deleteWellnessEntry(idx) {
+  if (S.wellnessLog && S.wellnessLog[idx]) {
+    S.wellnessLog.splice(idx, 1);
+    saveAll();
+    renderWellness();
+  }
+}
+
 /* ── CALENDAR ── */
 const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
 function changeMonth(d){
@@ -1201,10 +1309,13 @@ function renderCalendar(){
     const dow=(offset+d-1)%7;
     const dayKey=`${S.calYear}-${S.calMonth}-${d}`;
     const dayStickers=(S.calStickers&&S.calStickers[dayKey])||[];
+    const dayNote=(S.calNotes&&S.calNotes[dayKey])||'';
     const stickersHtml=dayStickers.length?`<div class="cal-stickers">${dayStickers.map(s=>`<span class="cal-sticker">${s}</span>`).join('')}</div>`:'';
-    html+=`<div class="cal-day ${isToday?'today':''} ${dow>=5&&!isToday?'weekend':''}" onclick="openSticker('${dayKey}')" title="Add sticker">
+    const noteHtml=dayNote?`<div style="font-size:7px;color:var(--text2);line-height:1.1;max-height:18px;overflow:hidden;text-align:center;padding:0 1px">${esc(dayNote).substring(0,20)}</div>`:'';
+    html+=`<div class="cal-day ${isToday?'today':''} ${dow>=5&&!isToday?'weekend':''}" onclick="openSticker('${dayKey}')" title="${esc(dayNote)||'Add note/sticker'}">
       <div class="cal-day-num">${d}</div>
       ${stickersHtml}
+      ${noteHtml}
     </div>`;
   }
   grid.innerHTML=html;
@@ -1257,6 +1368,8 @@ function openSticker(dayKey) {
   const d = new Date(+parts[0], +parts[1], +parts[2]);
   document.getElementById('sticker-day-label').textContent =
     d.toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric'});
+  var noteEl = document.getElementById('cal-day-note');
+  if (noteEl) noteEl.value = (S.calNotes && S.calNotes[dayKey]) || '';
   renderStickerTabs();
   renderStickerGrid();
   document.getElementById('sticker-overlay').classList.add('open');
@@ -1304,11 +1417,25 @@ function toggleSticker(emoji) {
 }
 
 function clearDayStickers() {
-  if (!S.calStickers) return;
+  if (!S.calStickers) S.calStickers = {};
   S.calStickers[pickerDayKey] = [];
+  if (!S.calNotes) S.calNotes = {};
+  S.calNotes[pickerDayKey] = '';
+  var noteEl = document.getElementById('cal-day-note');
+  if (noteEl) noteEl.value = '';
   renderStickerGrid();
   renderCalendar();
   saveAll();
+}
+
+function saveDayNote() {
+  if (!pickerDayKey) return;
+  if (!S.calNotes) S.calNotes = {};
+  var noteEl = document.getElementById('cal-day-note');
+  S.calNotes[pickerDayKey] = noteEl ? noteEl.value : '';
+  renderCalendar();
+  clearTimeout(window._noteT);
+  window._noteT = setTimeout(saveAll, 1000);
 }
 
 function pickAffirmation(val) {
